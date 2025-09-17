@@ -4,10 +4,10 @@ const userController = require('../controllers/userController');
 const walletController = require('../controllers/walletController');
 const { protect } = require('../middleware/auth');
 // Register user
-router.post('/register', userController.register);
+router.post('/send-otp', userController.sendOtp);
 
 // Login user
-router.post('/login', userController.login);
+router.post('/verify-otp', userController.verifyOtp);
 
 // Get user wallet
 router.get('/:userId/wallet',protect, walletController.getWallet);

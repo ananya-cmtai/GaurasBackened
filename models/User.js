@@ -29,11 +29,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-
+isEmailVerified:{
+  type:Boolean ,default:false
+},
   subscription: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Subscription',
   },
+
 
   wallet: {
     balance: {
@@ -74,11 +77,6 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// Password hashing before saving
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
-});
+
 
 module.exports = mongoose.model('User', userSchema);

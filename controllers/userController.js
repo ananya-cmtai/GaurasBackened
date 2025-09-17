@@ -1,42 +1,82 @@
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { sendOTPEmail } = require('../config/mail');
 
-exports.register = async (req, res) => {
-  const { name, email, password, phone, address } = req.body;
+const otpStore = {}; // { email: { otp, expiresAt, userId (optional) } }
 
-  try {
-    const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json({ message: 'User already exists' });
-
-    const user = await User.create({ name, email, password, phone, address });
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '7d',
-    });
-
-    res.status(201).json({ token, user });
-  } catch (err) {
-    res.status(500).json({ message: 'Registration failed', error: err.message });
-  }
-};
-
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
+exports.sendOtp = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: 'Email is required' });
 
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore[email] = {
+      otp,
+      expiresAt: Date.now() + 10 * 60 * 1000, // 10 min
+      userId: user ? user._id.toString() : null,
+    };
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '7d',
-    });
+    await sendOTPEmail(email, otp);
 
-    res.status(200).json({ token, user });
-  } catch (err) {
-    res.status(500).json({ message: 'Login failed', error: err.message });
+    res.status(200).json({ message: 'OTP sent to email' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to send OTP', error: error.message });
+  }
+};
+
+exports.verifyOtp = async (req, res) => {
+  const { email, otp, name, phone } = req.body;
+
+  if (!email || !otp) return res.status(400).json({ message: 'Email and OTP required' });
+
+  const record = otpStore[email];
+  if (!record) return res.status(400).json({ message: 'OTP not requested for this email' });
+
+  if (record.expiresAt < Date.now()) {
+    delete otpStore[email];
+    return res.status(400).json({ message: 'OTP expired' });
+  }
+
+  if (record.otp !== otp) return res.status(400).json({ message: 'Invalid OTP' });
+
+  try {
+    if (record.userId) {
+      // User exists, so login
+      const user = await User.findById(record.userId);
+
+      // Generate JWT token
+      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+      delete otpStore[email];
+      return res.status(200).json({ message: 'Login successful', token, user });
+    } else {
+      // User does not exist, so register
+
+      // Password must be provided for registration
+      if ( !name) {
+        return res.status(400).json({ message: 'Name  required for registration' });
+      }
+
+    
+
+      const newUser = await User.create({
+        name,
+        email,
+      
+        phone,
+       
+      });
+
+      const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+      delete otpStore[email];
+      return res.status(201).json({ message: 'Registration successful', token, user: newUser });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error verifying OTP', error: error.message });
   }
 };
