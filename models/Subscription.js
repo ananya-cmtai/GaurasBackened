@@ -1,13 +1,38 @@
+// models/subscription.js
 const mongoose = require('mongoose');
 
-const SubscriptionSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-  quantity: Number,
-  startDate: Date,
-  endDate: Date,
-  daysRemaining: Number,
-  status: { type: String, enum: ['active', 'paused', 'cancelled'], default: 'active' }
-}, { timestamps: true });
+const subscriptionSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  subscriptionType: {
+    type: String,
+    enum: ['Weekly', 'Monthly', 'Daily'],
+    required: true,
+  },
+  startDate: {
+    type: Date,
+    required: true,
+  },
+  endDate: {
+    type: Date,
+    required: true,
+  },
+  renewalDate: {
+    type: Date,
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ['Active', 'Inactive', 'Cancelled'],
+    default: 'Active',
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
-module.exports = mongoose.model('Subscription', SubscriptionSchema);
+module.exports = mongoose.model('Subscription', subscriptionSchema);

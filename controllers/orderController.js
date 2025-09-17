@@ -1,51 +1,35 @@
-const NormalOrder = require('../models/NormalOrders');
+
 const Product = require('../models/Product');
-const { deductFromWallet } = require('./walletController');
+const User = require('../models/User');
+const Order = require('../models/OrderModel');
 
 exports.placeOrder = async (req, res) => {
+  const { userId, products, totalAmount, deliveryAddress, deliveryDate } = req.body;
+
   try {
-    const { userId, items, deliveryDate } = req.body;
-
-    // Calculate total
-    let totalAmount = 0;
-    for (const item of items) {
-      const product = await Product.findById(item.productId);
-      if (!product || !product.isActive) return res.status(400).json({ message: 'Invalid product in cart' });
-      totalAmount += product.pricePerUnit * item.quantity;
-    }
-
-    // Deduct from wallet
-    try {
-      await deductFromWallet(userId, totalAmount, 'Order payment');
-    } catch (err) {
-      return res.status(400).json({ message: err.message });
-    }
-
-    // Create order
-    const order = new NormalOrder({
-      userId,
-      items,
+    const order = await Order.create({
+      user: userId,
+      products,
       totalAmount,
-      status: 'placed',
-      deliveryDate
+      deliveryAddress,
+      deliveryDate,
     });
 
-    await order.save();
-
-    res.status(201).json({ message: 'Order placed successfully', order });
+    res.status(201).json({ message: 'Order placed', order });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error placing order' });
+    res.status(500).json({ message: 'Failed to place order', error: err.message });
   }
 };
 
-exports.getUserOrders = async (req, res) => {
+exports.getOrdersByUser = async (req, res) => {
+  const { userId } = req.params;
+
   try {
-    const { userId } = req.params;
-    const orders = await NormalOrder.find({ userId }).sort({ createdAt: -1 });
+    const orders = await Order.find({ user: userId }).populate('products.productId');
+
     res.status(200).json(orders);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error fetching orders' });
+    res.status(500).json({ message: 'Could not fetch orders', error: err.message });
   }
 };
+

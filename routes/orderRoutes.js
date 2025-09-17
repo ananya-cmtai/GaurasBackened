@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const {
-  placeOrder,
-  getUserOrders
-} = require('../controllers/orderController');
+const orderController = require('../controllers/orderController');
+const { protect } = require('../middleware/auth');
+// Place an order
+router.post('/',protect, orderController.placeOrder);
 
-router.post('/buy', placeOrder);
-router.get('/myorders/:userId', getUserOrders);
+// Get orders by user
+router.get('/user/:userId',protect, orderController.getOrdersByUser);
 
 module.exports = router;

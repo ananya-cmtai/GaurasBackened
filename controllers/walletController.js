@@ -1,61 +1,29 @@
-const WalletTransaction = require('../models/WalletTransaction');
 const User = require('../models/User');
 
-exports.topUpWallet = async (req, res) => {
+exports.addFunds = async (req, res) => {
+  const { userId, amount, description } = req.body;
+
   try {
-    const { userId, amount } = req.body;
-    if (amount <= 0) return res.status(400).json({ message: 'Invalid amount' });
-
     const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    user.walletBalance += amount;
+    user.wallet.balance += amount;
+    user.wallet.transactions.push({
+      type: 'Credit',
+      amount,
+      description: description || 'Wallet Top-up',
+    });
     await user.save();
 
-    const transaction = new WalletTransaction({
-      userId,
-      type: 'credit',
-      amount,
-      description: 'Wallet top-up'
-    });
-    await transaction.save();
-
-    res.status(200).json({ message: 'Wallet topped up', walletBalance: user.walletBalance });
+    res.status(200).json({ message: 'Funds added', balance: user.wallet.balance });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error topping up wallet' });
+    res.status(500).json({ message: 'Wallet error', error: err.message });
   }
 };
 
-exports.deductFromWallet = async (userId, amount, description) => {
-  // Internal function, not route
-  const user = await User.findById(userId);
-  if (!user) throw new Error('User not found');
-
-  if (user.walletBalance < amount) throw new Error('Insufficient wallet balance');
-
-  user.walletBalance -= amount;
-  await user.save();
-
-  const transaction = new WalletTransaction({
-    userId,
-    type: 'debit',
-    amount,
-    description
-  });
-  await transaction.save();
-
-  return user.walletBalance;
-};
-
-exports.getWalletTransactions = async (req, res) => {
+exports.getWallet = async (req, res) => {
   try {
-    const { userId } = req.params;
-
-    const transactions = await WalletTransaction.find({ userId }).sort({ date: -1 });
-    res.status(200).json(transactions);
+    const user = await User.findById(req.params.userId);
+    res.status(200).json(user.wallet);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error fetching transactions' });
+    res.status(500).json({ message: 'Error fetching wallet', error: err.message });
   }
 };

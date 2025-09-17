@@ -1,11 +1,32 @@
+// models/product.js
 const mongoose = require('mongoose');
 
-const ProductSchema = new mongoose.Schema({
-  name: String,
-  category: String,
-  pricePerUnit: Number,
-  stock: Number,
-  isActive: Boolean
+const productSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  category: {
+    type: String,
+    enum: ['Milk', 'Butter', 'Cheese', 'Yogurt', 'Ghee'],
+    required: true,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
+  stock: {
+    type: Number,
+    default: 0, // Track inventory
+  },
+  imageUrl: {
+    type: String,
+    default: '', // URL to the product image
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-module.exports = mongoose.model('Product', ProductSchema);
+module.exports = mongoose.model('Product', productSchema);
