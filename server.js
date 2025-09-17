@@ -21,9 +21,6 @@ const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 
 
-app.use("/", (res) => {
-    res.status("200").send("Welcome to Api Server");
-});
 
 
 // Use routes
