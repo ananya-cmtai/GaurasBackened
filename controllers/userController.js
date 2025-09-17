@@ -49,7 +49,7 @@ exports.verifyOtp = async (req, res) => {
       const user = await User.findById(record.userId);
 
       // Generate JWT token
-      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
       delete otpStore[email];
       return res.status(200).json({ message: 'Login successful', token, user });
@@ -71,7 +71,7 @@ exports.verifyOtp = async (req, res) => {
        
       });
 
-      const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      const token = jwt.sign({ _id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
       delete otpStore[email];
       return res.status(201).json({ message: 'Registration successful', token, user: newUser });

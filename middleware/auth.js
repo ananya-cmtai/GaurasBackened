@@ -1,4 +1,3 @@
-
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
@@ -17,14 +16,17 @@ exports.protect = async (req, res, next) => {
   }
 
   try {
+    // Decode token and get user id
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const user = await User.findById(decoded._id);
+    
+    // Fetch user from DB using decoded _id
+    const user = await User.findById(decoded._id).select('-password');
     if (!user) {
       return res.status(401).json({ message: 'User not found' });
     }
 
-    req.user = user; // Now you'll get req.user._id, req.user.role, etc.
+    // Attach user object to req
+    req.user = user;
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Not authorized, token failed' });
