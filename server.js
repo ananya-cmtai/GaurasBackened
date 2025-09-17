@@ -9,10 +9,6 @@ const app = express();
 // Connect to MongoDB
 
 
-app.use("/",(req, res) => {
-    res.status("200").send("Welcome to Api Server");
-});
-
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -23,6 +19,12 @@ const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+
+
+app.use("/", (res) => {
+    res.status("200").send("Welcome to Api Server");
+});
+
 
 // Use routes
 app.use('/api/users', userRoutes);
