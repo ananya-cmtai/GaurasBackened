@@ -3,9 +3,10 @@ const Notification = require('../models/Notification');
 
 
 exports.createSubscription = async (req, res) => {
-  const { user, subscriptionType } = req.body;
+  const { subscriptionType } = req.body;
 
   try {
+     const user = req.user._id;
     const startDate = new Date();
     let endDate = new Date(startDate);
     let renewalDate = new Date(startDate);
