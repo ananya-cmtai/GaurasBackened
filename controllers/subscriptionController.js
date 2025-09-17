@@ -3,7 +3,7 @@ const Notification = require('../models/Notification');
 
 
 exports.createSubscription = async (req, res) => {
-  const { subscriptionType } = req.body;
+  const { subscriptionType,productId } = req.body;
 
   try {
      const user = req.user._id;
@@ -34,6 +34,7 @@ exports.createSubscription = async (req, res) => {
       startDate,
       endDate,
       renewalDate,
+      productId
     });
 
     res.status(201).json(sub);

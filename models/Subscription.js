@@ -12,6 +12,11 @@ const subscriptionSchema = new mongoose.Schema({
     enum: ['Weekly', 'Monthly', 'Daily'],
     required: true,
   },
+  productId:{
+  type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true,
+  },
   startDate: {
     type: Date,
     required: true,
