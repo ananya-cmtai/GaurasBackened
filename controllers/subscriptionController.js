@@ -1,10 +1,32 @@
 const Subscription = require('../models/Subscription');
 const Notification = require('../models/Notification');
 
+
 exports.createSubscription = async (req, res) => {
-  const { user, subscriptionType, startDate, endDate, renewalDate } = req.body;
+  const { user, subscriptionType } = req.body;
 
   try {
+    const startDate = new Date();
+    let endDate = new Date(startDate);
+    let renewalDate = new Date(startDate);
+
+    switch (subscriptionType) {
+      case 'Daily':
+        endDate.setDate(endDate.getDate() + 1);
+        renewalDate.setDate(renewalDate.getDate() + 1);
+        break;
+      case 'Weekly':
+        endDate.setDate(endDate.getDate() + 7);
+        renewalDate.setDate(renewalDate.getDate() + 7);
+        break;
+      case 'Monthly':
+        endDate.setMonth(endDate.getMonth() + 1);
+        renewalDate.setMonth(renewalDate.getMonth() + 1);
+        break;
+      default:
+        return res.status(400).json({ message: 'Invalid subscription type' });
+    }
+
     const sub = await Subscription.create({
       user,
       subscriptionType,
@@ -15,6 +37,7 @@ exports.createSubscription = async (req, res) => {
 
     res.status(201).json(sub);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Failed to create subscription' });
   }
 };
