@@ -34,6 +34,7 @@ const subscriptionSchema = new mongoose.Schema({
     enum: ['Active', 'Inactive', 'Cancelled'],
     default: 'Active',
   },
+   skippedDates: [{ type: Date }],
   createdAt: {
     type: Date,
     default: Date.now,

@@ -44,7 +44,6 @@ exports.createSubscription = async (req, res) => {
   }
 };
 
-
 exports.skipToday = async (req, res) => {
   const { subscriptionId } = req.params;
 
@@ -55,8 +54,20 @@ exports.skipToday = async (req, res) => {
       return res.status(404).json({ message: 'Subscription not found' });
     }
 
+    const today = new Date();
+    const todayWithoutTime = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    // Check if today is already skipped
+    if (subscription.skippedDates.some(date => date.getTime() === todayWithoutTime.getTime())) {
+      return res.status(400).json({ message: 'Today is already skipped' });
+    }
+
+    // Add today's date to skippedDates
+    subscription.skippedDates.push(todayWithoutTime);
+
     // Extend endDate by 1 day
     subscription.endDate = new Date(subscription.endDate.getTime() + 24 * 60 * 60 * 1000);
+
     await subscription.save();
 
     // Notify user
@@ -71,4 +82,5 @@ exports.skipToday = async (req, res) => {
     res.status(500).json({ message: 'Error skipping delivery', error: error.message });
   }
 };
+
 
