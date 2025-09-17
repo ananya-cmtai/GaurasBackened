@@ -7,21 +7,18 @@ const scheduleNotificationJob = require('./config/notificationScheduler');
 const app = express();
 
 // Connect to MongoDB
-
+connectDB();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-connectDB();
+
 // Import routes
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
-
-
-
 
 // Use routes
 app.use('/api/users', userRoutes);
