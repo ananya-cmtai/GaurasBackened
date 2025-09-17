@@ -9,6 +9,10 @@ const app = express();
 // Connect to MongoDB
 
 
+app.use("/",(req, res) => {
+    res.status("200").send("Welcome to Api Server");
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
