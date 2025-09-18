@@ -29,7 +29,7 @@ exports.sendOtp = async (req, res) => {
 };
 
 exports.verifyOtp = async (req, res) => {
-  const { email, otp, name, phone } = req.body;
+  const { email, otp, phone } = req.body;
 
   if (!email || !otp) return res.status(400).json({ message: 'Email and OTP required' });
 
@@ -57,14 +57,12 @@ exports.verifyOtp = async (req, res) => {
       // User does not exist, so register
 
       // Password must be provided for registration
-      if ( !name) {
-        return res.status(400).json({ message: 'Name  required for registration' });
-      }
+
 
     
 
       const newUser = await User.create({
-        name,
+        
         email,
       
         phone,
