@@ -1,15 +1,5 @@
 const Home = require('../models/Home');
 
-// 🔍 Get Home Data
-exports.getHome = async (req, res) => {
-  try {
-    const home = await Home.findOne({}).populate('featuredSections.products');
-    res.json(home);
-  } catch (error) {
-    res.status(500).json({ error: 'Something went wrong' });
-  }
-};
-
 // 🆕 Create or Update Full Home Page
 exports.createOrUpdateHome = async (req, res) => {
   try {
@@ -168,5 +158,23 @@ exports.deleteFeaturedSection = async (req, res) => {
     res.json({ message: 'Section deleted', featuredSections: home.featuredSections });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete section' });
+  }
+};
+exports.getHome = async (req, res) => {
+  try {
+    const home = await Home.findOne({})
+      .populate({
+        path: 'featuredSections.products',
+        model: 'Product'  // Make sure 'Product' is the correct model name
+      });
+
+    if (!home) {
+      return res.status(404).json({ message: 'No home data found' });
+    }
+
+    res.json(home);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Something went wrong while fetching home data' });
   }
 };
