@@ -23,6 +23,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     default: '', 
   },
+  quantity:{
+    type: String,
+    
+  },
   createdAt: {
     type: Date,
     default: Date.now,
