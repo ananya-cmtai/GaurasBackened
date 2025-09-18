@@ -89,3 +89,84 @@ exports.deleteBanner = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete banner' });
   }
 };
+exports.addFeaturedSection = async (req, res) => {
+  try {
+    const { title, products } = req.body;
+    const home = await Home.findOne();
+    if (!home) return res.status(404).json({ error: 'Home not found' });
+
+    home.featuredSections.push({ title, products });
+    await home.save();
+    res.json({ message: 'Featured section added', featuredSections: home.featuredSections });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to add featured section' });
+  }
+};
+exports.updateFeaturedSectionTitle = async (req, res) => {
+  try {
+    const { sectionId } = req.params;
+    const { title } = req.body;
+
+    const home = await Home.findOne();
+    const section = home.featuredSections.id(sectionId);
+    if (!section) return res.status(404).json({ error: 'Section not found' });
+
+    section.title = title;
+    await home.save();
+    res.json({ message: 'Section title updated', section });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update section title' });
+  }
+};
+exports.addProductsToSection = async (req, res) => {
+  try {
+    const { sectionId } = req.params;
+    const { products } = req.body; // array of product IDs
+
+    const home = await Home.findOne();
+    const section = home.featuredSections.id(sectionId);
+    if (!section) return res.status(404).json({ error: 'Section not found' });
+
+    // Avoid duplicate product IDs
+    products.forEach(p => {
+      if (!section.products.includes(p)) {
+        section.products.push(p);
+      }
+    });
+
+    await home.save();
+    res.json({ message: 'Products added to section', section });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to add products' });
+  }
+};
+exports.removeProductFromSection = async (req, res) => {
+  try {
+    const { sectionId, productId } = req.params;
+
+    const home = await Home.findOne();
+    const section = home.featuredSections.id(sectionId);
+    if (!section) return res.status(404).json({ error: 'Section not found' });
+
+    section.products = section.products.filter(pid => pid.toString() !== productId);
+    await home.save();
+    res.json({ message: 'Product removed from section', section });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to remove product' });
+  }
+};
+exports.deleteFeaturedSection = async (req, res) => {
+  try {
+    const { sectionId } = req.params;
+
+    const home = await Home.findOne();
+    if (!home) return res.status(404).json({ error: 'Home not found' });
+
+    home.featuredSections = home.featuredSections.filter(sec => sec._id.toString() !== sectionId);
+    await home.save();
+
+    res.json({ message: 'Section deleted', featuredSections: home.featuredSections });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete section' });
+  }
+};
