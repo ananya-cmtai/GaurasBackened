@@ -10,12 +10,12 @@ router.get('/',protect, productController.getAllProducts);
 router.post('/',protect,  uploadProducts.single('imageUrl'), productController.addProduct);
 
 
-router.put('/products/:productId',protect, uploadProducts.single('imageUrl'), productController.updateProduct); 
+router.put('/:productId',protect, uploadProducts.single('imageUrl'), productController.updateProduct); 
 
-router.post('/products/:productId/description', productController.addDescriptionPoint);
+router.post('/:productId/description', productController.addDescriptionPoint);
 
-router.delete('/products/:productId/description', productController.deleteDescriptionPoint);
+router.delete('/:productId/description', productController.deleteDescriptionPoint);
 
-router.put('/products/:productId/description/:index', productController.editDescriptionPoint);
+router.put('/:productId/description/:index', productController.editDescriptionPoint);
 
 module.exports = router;
