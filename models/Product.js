@@ -17,11 +17,11 @@ const productSchema = new mongoose.Schema({
   },
   stock: {
     type: Number,
-    default: 0, // Track inventory
+    default: 0, 
   },
   imageUrl: {
     type: String,
-    default: '', // URL to the product image
+    default: '', 
   },
   createdAt: {
     type: Date,
