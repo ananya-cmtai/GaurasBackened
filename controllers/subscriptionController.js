@@ -3,11 +3,23 @@ const Notification = require('../models/Notification');
 
 
 exports.createSubscription = async (req, res) => {
-  const { subscriptionType,productId } = req.body;
+  const { subscriptionType, productId, startDate: startDateString,address } = req.body;
 
   try {
-     const user = req.user._id;
-    const startDate = new Date();
+    const user = req.user._id;
+
+    if (!startDateString) {
+      return res.status(400).json({ message: 'Start date is required' });
+    }
+      if (!address) {
+      return res.status(400).json({ message: 'Address is required' });
+    }
+
+    const startDate = new Date(startDateString);
+    if (isNaN(startDate.getTime())) {
+      return res.status(400).json({ message: 'Invalid start date format' });
+    }
+
     let endDate = new Date(startDate);
     let renewalDate = new Date(startDate);
 
@@ -34,7 +46,7 @@ exports.createSubscription = async (req, res) => {
       startDate,
       endDate,
       renewalDate,
-      productId
+      productId,address
     });
 
     res.status(201).json(sub);
@@ -43,6 +55,7 @@ exports.createSubscription = async (req, res) => {
     res.status(500).json({ message: 'Failed to create subscription' });
   }
 };
+
 
 exports.skipToday = async (req, res) => {
   const { subscriptionId } = req.params;

@@ -17,6 +17,11 @@ const subscriptionSchema = new mongoose.Schema({
     ref: 'Product',
     required: true,
   },
+  address:{
+type: String,
+  
+    required: true,
+  },
   startDate: {
     type: Date,
     required: true,
