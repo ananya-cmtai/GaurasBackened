@@ -29,7 +29,7 @@ exports.sendOtp = async (req, res) => {
 };
 
 exports.verifyOtp = async (req, res) => {
-  const { email, otp, phone } = req.body;
+  const { email, otp } = req.body;
 
   if (!email || !otp) return res.status(400).json({ message: 'Email and OTP required' });
 
@@ -65,7 +65,7 @@ exports.verifyOtp = async (req, res) => {
         
         email,
       
-        phone,
+        // phone,
        
       });
 
