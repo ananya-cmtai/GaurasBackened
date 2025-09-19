@@ -15,4 +15,6 @@ router.get('/:userId/wallet',protect, walletController.getWallet);
 // Add funds to wallet
 router.post('/:userId/wallet/add',protect, walletController.addFunds);
 
+router.put('/profile', protect, userController.updateProfile);
+
 module.exports = router;

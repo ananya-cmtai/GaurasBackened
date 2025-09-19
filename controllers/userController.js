@@ -78,3 +78,30 @@ exports.verifyOtp = async (req, res) => {
     res.status(500).json({ message: 'Error verifying OTP', error: error.message });
   }
 };
+exports.updateProfile = async (req, res) => {
+  const userId = req.user._id; // Assuming you're using JWT middleware that sets req.user
+  const { name, phone, address,email } = req.body;
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          ...(name && { name }),
+          ...(phone && { phone }),
+          ...(email && { email }),
+          ...(address && { address }),
+        },
+      },
+      { new: true } // return updated user
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.status(200).json({ message: 'Profile updated successfully', user: updatedUser });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error updating profile', error: err.message });
+  }
+};
