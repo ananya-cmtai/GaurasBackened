@@ -1,8 +1,20 @@
 const User = require('../models/User');
 
 exports.addFunds = async (req, res) => {
-  const { amount, description } = req.body;
+  const { amount, description,razorpay_order_id,razorpay_signature,razorpay_payment_id } = req.body;
   const userId = req.user._id; 
+ if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ message: "Missing required Razorpay details." });
+    }
+
+    // Verify Razorpay payment signature
+    const generated_signature = crypto.createHmac('sha256', "2kA1raBV7KriMGR8EHoQAXY0")
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .digest('hex');
+
+    if (generated_signature !== razorpay_signature) {
+      return res.status(400).json({ message: 'Payment verification failed' });
+    }
 
   try {
     const user = await User.findById(userId);
@@ -14,6 +26,12 @@ exports.addFunds = async (req, res) => {
       amount,
       description: description || 'Wallet Top-up',
       source: 'Top-up',
+       paymentDetails: {
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature
+      },
+      paymentVerified: true,
     });
 
     await user.save();

@@ -8,7 +8,17 @@ const transactionSchema = new mongoose.Schema({
   description: { type: String, default: '' },
   source: { type: String }, // e.g., 'Top-up', 'Order Payment'
   date: { type: Date, default: Date.now },
-  orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' }, // optional
+  orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' }, 
+   paymentDetails: {
+    razorpay_order_id: { type: String },
+    razorpay_payment_id: { type: String },
+       razorpay_signature: { type: String },
+  },
+  // Optionally, keep track of payment verification status
+  paymentVerified: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Wallet Schema
