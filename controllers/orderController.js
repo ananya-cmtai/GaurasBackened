@@ -58,7 +58,8 @@ exports.placeOrder = async (req, res) => {
         razorpay_payment_id,
         razorpay_signature
       },
-      paymentVerified: true, deliveryFee,
+      paymentVerified: true,
+       deliveryFee,
       gst,
       discount,
     
