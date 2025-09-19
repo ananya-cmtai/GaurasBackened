@@ -40,7 +40,7 @@ exports.placeOrder = async (req, res) => {
     }
 
     // Verify Razorpay payment signature
-    const generated_signature = crypto.createHmac('sha256', "iTwFjDdWexp5Vmx98TiWBBlQ")
+    const generated_signature = crypto.createHmac('sha256', "2kA1raBV7KriMGR8EHoQAXY0")
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest('hex');
 
@@ -128,7 +128,7 @@ exports.updateOrderStatus = async (req, res) => {
 const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = order.paymentDetails;
 
     // Generate the signature on the server side using the order_id and payment_id
-    const generated_signature = crypto.createHmac('sha256', "iTwFjDdWexp5Vmx98TiWBBlQ")
+    const generated_signature = crypto.createHmac('sha256', "2kA1raBV7KriMGR8EHoQAXY0")
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest('hex');
 
