@@ -8,4 +8,6 @@ router.post('/',protect, orderController.placeOrder);
 // Get orders by user
 router.get('/user/:userId',protect, orderController.getOrdersByUser);
 
+router.put('/order/:orderId/status', orderController.updateOrderStatus);
+
 module.exports = router;

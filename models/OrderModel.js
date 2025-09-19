@@ -14,10 +14,14 @@ const orderSchema = new mongoose.Schema({
         ref: 'Product',
         required: true,
       },
-      quantity: {
+      quantityPacket: {
         type: Number,
         required: true,
       },
+      quantity:{
+          type: String,
+        required: true,
+      }
     },
   ],
   totalAmount: {
