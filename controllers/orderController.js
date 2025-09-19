@@ -4,7 +4,7 @@ const User = require('../models/User');
 const Order = require('../models/OrderModel');
 
 exports.placeOrder = async (req, res) => {
-  const { userId, products, totalAmount, deliveryAddress, deliveryDate } = req.body;
+  const { userId, products, totalAmount, deliveryAddress } = req.body;
 
   try {
     const order = await Order.create({
@@ -12,7 +12,7 @@ exports.placeOrder = async (req, res) => {
       products,
       totalAmount,
       deliveryAddress,
-      deliveryDate,
+    
     });
 
     res.status(201).json({ message: 'Order placed', order });
