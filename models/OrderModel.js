@@ -45,6 +45,30 @@ const orderSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  paymentDetails: {
+    razorpay_order_id: { type: String },
+    razorpay_payment_id: { type: String },
+       razorpay_signature: { type: String },
+  },
+  // Optionally, keep track of payment verification status
+  paymentVerified: {
+    type: Boolean,
+    default: false,
+  },
+    deliveryFee: {
+    type: Number,
+ 
+  },
+  gst: {
+    type: Number,
+ 
+  },
+  discount: {
+    type: Number,
+    default: 0,
+  },
+   refundStatus: { type: String, default: 'Not Initiated' },  // 'Not Initiated', 'Processing', 'Refunded', 'Failed'
+  refundMessage: { type: String, default: '' }, 
 });
 
 module.exports = mongoose.model('Order', orderSchema);

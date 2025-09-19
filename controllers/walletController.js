@@ -1,29 +1,83 @@
 const User = require('../models/User');
 
 exports.addFunds = async (req, res) => {
-  const { userId, amount, description } = req.body;
+  const { amount, description } = req.body;
+  const userId = req.user._id; 
 
   try {
     const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
     user.wallet.balance += amount;
     user.wallet.transactions.push({
       type: 'Credit',
       amount,
       description: description || 'Wallet Top-up',
+      source: 'Top-up',
     });
+
     await user.save();
 
-    res.status(200).json({ message: 'Funds added', balance: user.wallet.balance });
+    res.status(200).json({
+      message: 'Funds added',
+      balance: user.wallet.balance,
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Wallet error', error: err.message });
+    res.status(500).json({
+      message: 'Wallet error',
+      error: err.message,
+    });
   }
 };
 
 exports.getWallet = async (req, res) => {
+  const userId = req.user._id;
+
   try {
-    const user = await User.findById(req.params.userId);
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
     res.status(200).json(user.wallet);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching wallet', error: err.message });
+    res.status(500).json({
+      message: 'Error fetching wallet',
+      error: err.message,
+    });
   }
 };
+
+exports.deductFromWallet = async (req, res) => {
+  const { amount, description, orderId } = req.body;
+  const userId = req.user._id; // secure
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.wallet.balance < amount) {
+      return res.status(400).json({ message: 'Insufficient wallet balance' });
+    }
+
+    user.wallet.balance -= amount;
+    user.wallet.transactions.push({
+      type: 'Debit',
+      amount,
+      description: description || 'Payment for order',
+      source: 'Order Payment',
+      orderId,
+    });
+
+    await user.save();
+
+    res.status(200).json({
+      message: 'Amount deducted',
+      balance: user.wallet.balance,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: 'Error during debit',
+      error: err.message,
+    });
+  }
+};
+

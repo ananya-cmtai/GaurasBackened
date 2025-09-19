@@ -9,5 +9,6 @@ router.post('/',protect, orderController.placeOrder);
 router.get('/user/:userId',protect, orderController.getOrdersByUser);
 
 router.put('/order/:orderId/status', orderController.updateOrderStatus);
+       router.route('/razorpay/order').post(protect, orderController.createRazorpayOrderController);
 
 module.exports = router;

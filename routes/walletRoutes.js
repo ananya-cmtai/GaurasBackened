@@ -1,11 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const {
-  topUpWallet,
-  getWalletTransactions
+  addFunds,
+  getWallet,
+  deductFromWallet,
 } = require('../controllers/walletController');
+
 const { protect } = require('../middleware/auth');
-router.post('/topup',protect, topUpWallet);
-router.get('/transactions/:userId',protect, getWalletTransactions);
+
+// ✅ Add money to wallet (Top-up)
+router.post('/topup', protect, addFunds);
+
+// ✅ Deduct money for an order
+router.post('/deduct', protect, deductFromWallet);
+
+// ✅ Get wallet balance and transaction history
+router.get('/', protect, getWallet);
 
 module.exports = router;

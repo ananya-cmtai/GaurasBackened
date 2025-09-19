@@ -1,13 +1,28 @@
-// models/user.js
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs'); // For password hashing
+const bcrypt = require('bcryptjs'); // Optional: if using for auth
 
+// Transaction Schema
+const transactionSchema = new mongoose.Schema({
+  type: { type: String, enum: ['Credit', 'Debit'], required: true },
+  amount: { type: Number, required: true },
+  description: { type: String, default: '' },
+  source: { type: String }, // e.g., 'Top-up', 'Order Payment'
+  date: { type: Date, default: Date.now },
+  orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' }, // optional
+});
+
+// Wallet Schema
+const walletSchema = new mongoose.Schema({
+  balance: { type: Number, default: 0 },
+  transactions: [transactionSchema],
+});
+
+// User Schema
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
     // required: true,
   },
-
   email: {
     type: String,
     required: true,
@@ -18,59 +33,27 @@ const userSchema = new mongoose.Schema({
     // required: true,
     unique: true,
   },
-
   address: {
     type: String,
     // required: true,
   },
-isEmailVerified:{
-  type:Boolean ,default:false
-},
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+  },
   subscription: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Subscription',
   },
-
-
-  wallet: {
-    balance: {
-      type: Number,
-      default: 0,
-    },
-    transactions: [
-      {
-        type: {
-          type: String,
-          enum: ['Credit', 'Debit'],
-          required: true,
-        },
-        amount: {
-          type: Number,
-          required: true,
-        },
-        description: {
-          type: String,
-          default: '',
-        },
-        date: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
-  },
-
+  wallet: walletSchema, // Clean integration
   role: {
     type: String,
-    default: 'user', // Could also be 'admin'
+    default: 'user', // or 'admin'
   },
-
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
-
-
 
 module.exports = mongoose.model('User', userSchema);
