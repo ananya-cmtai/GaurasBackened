@@ -12,10 +12,10 @@ const subscriptionSchema = new mongoose.Schema({
     enum: ['Alternate', 'Daily', 'Weekly'],
     required: true,
   },
-  deliveryDays: [{
+  deliveryDays: {
   type: String,
   enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-}],
+},
 
   productId:{
   type: mongoose.Schema.Types.ObjectId,

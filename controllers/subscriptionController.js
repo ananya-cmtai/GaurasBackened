@@ -20,16 +20,17 @@ exports.createSubscription = async (req, res) => {
     endDate.setDate(endDate.getDate() + 30); // Fixed 30 days duration
     const renewalDate = new Date(endDate); // You can customize this logic later
 
-    if (subscriptionType === 'Weekly') {
-      if (!Array.isArray(deliveryDays) || deliveryDays.length === 0) {
-        return res.status(400).json({ message: 'deliveryDays is required for weekly subscription' });
-      }
+   if (subscriptionType === 'Weekly') {
+  if (!deliveryDays) {
+    return res.status(400).json({ message: 'deliveryDays is required for weekly subscription' });
+  }
 
-      const validDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const isValid = deliveryDays.every(day => validDays.includes(day));
-      if (!isValid) {
-        return res.status(400).json({ message: 'Invalid deliveryDays values' });
-      }
+  const validDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  if (!validDays.includes(deliveryDays)) {
+    return res.status(400).json({ message: 'Invalid deliveryDays value' });
+  }
+
+
     }
 
     const sub = await Subscription.create({
