@@ -9,7 +9,7 @@ const subscriptionSchema = new mongoose.Schema({
   },
   subscriptionType: {
     type: String,
-    enum: ['Weekly', 'Monthly', 'Daily'],
+    enum: ['Alternate', 'Monthly', 'Daily'],
     required: true,
   },
   productId:{
@@ -38,6 +38,11 @@ type: String,
     type: String,
     enum: ['Active', 'Inactive', 'Cancelled'],
     default: 'Active',
+  },
+  numberPacket:{
+    type: Number,
+    default:1,
+    required: true
   },
    skippedDates: [{ type: Date }],
   createdAt: {
