@@ -75,7 +75,7 @@ exports.getWallet = async (req, res) => {
 };
 
 exports.deductFromWallet = async (req, res) => {
-  const { amount, description, orderId } = req.body;
+  const { amount, description, orderId ,source} = req.body;
   const userId = req.user._id; // secure
 
   try {
@@ -91,7 +91,7 @@ exports.deductFromWallet = async (req, res) => {
       type: 'Debit',
       amount,
       description: description || 'Payment for order',
-      source: 'Order Payment',
+      source,
       orderId,
     });
 
