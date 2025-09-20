@@ -6,11 +6,12 @@ exports.createSubscription = async (req, res) => {
   const { subscriptionType, productId, startDate: startDateString, address, numberPacket, total, deliveryDays , razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature,
-  
+  paymentMode,
       paymentVerified,
        deliveryFee,
       gst,
       discount,} = req.body;
+        if(paymentMode==="Razorpay"){
  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ message: "Missing required Razorpay details." });
     }
@@ -20,7 +21,7 @@ exports.createSubscription = async (req, res) => {
 
     if (generated_signature !== razorpay_signature) {
       return res.status(400).json({ message: 'Payment verification failed' });
-    }
+    }}
   try {
     const user = req.user._id;
 
@@ -61,7 +62,7 @@ exports.createSubscription = async (req, res) => {
       total,
       numberPacket,
       deliveryDays: subscriptionType === 'Weekly' ? deliveryDays : undefined,
-       
+       paymentMode,
         razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature,

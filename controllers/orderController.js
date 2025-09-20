@@ -30,11 +30,12 @@ const Razorpay = require('razorpay');
 };
 
 exports.placeOrder = async (req, res) => {
-  const { userId, products, totalAmount, deliveryAddress ,  razorpay_order_id,  deliveryFee,
+  const { userId, products, totalAmount, deliveryAddress ,  razorpay_order_id,  deliveryFee,paymentMode,
       gst,
       discount,
       razorpay_payment_id,
       razorpay_signature} = req.body;
+      if(paymentMode==="Razorpay"){
  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ message: "Missing required Razorpay details." });
     }
@@ -45,12 +46,13 @@ exports.placeOrder = async (req, res) => {
     if (generated_signature !== razorpay_signature) {
       return res.status(400).json({ message: 'Payment verification failed' });
     }
+  }
   try {
     const order = await Order.create({
       user: userId,
       products,
       totalAmount,
-      deliveryAddress,
+      deliveryAddress,paymentMode,
          paymentDetails: {
         razorpay_order_id,
         razorpay_payment_id,

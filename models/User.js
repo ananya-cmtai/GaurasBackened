@@ -13,6 +13,9 @@ const transactionSchema = new mongoose.Schema({
     razorpay_order_id: { type: String },
     razorpay_payment_id: { type: String },
        razorpay_signature: { type: String },
+  },  paymentMode:{
+    type:String,
+        enum: ['Wallet', 'Razorpay'],
   },
   // Optionally, keep track of payment verification status
   paymentVerified: {
