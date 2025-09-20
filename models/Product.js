@@ -11,6 +11,18 @@ const productSchema = new mongoose.Schema({
     enum: ['Milk', 'Butter', 'Cheese', 'Yogurt', 'Ghee'],
     required: true,
   },
+  dailyPrice:{
+     type:Number,
+    
+  },
+  alternatePrice:{
+ type:Number,
+    
+  },
+  weeklyPrice:{
+ type:Number,
+   
+  },
   price: {
     type: Number,
     required: true,
@@ -35,5 +47,18 @@ const productSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
-
+productSchema.pre('save', function (next) {
+  if (this.isNew || this.isModified('price')) {
+    if (this.dailyPrice === undefined) {
+      this.dailyPrice = this.price * 30;
+    }
+    if (this.alternatePrice === undefined) {
+      this.alternatePrice = this.price * 15;
+    }
+    if (this.weeklyPrice === undefined) {
+      this.weeklyPrice = this.price * 4;
+    }
+  }
+  next();
+});
 module.exports = mongoose.model('Product', productSchema);

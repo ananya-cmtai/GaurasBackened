@@ -9,9 +9,14 @@ const subscriptionSchema = new mongoose.Schema({
   },
   subscriptionType: {
     type: String,
-    enum: ['Alternate', 'Monthly', 'Daily'],
+    enum: ['Alternate', 'Daily', 'Weekly'],
     required: true,
   },
+  deliveryDays: [{
+  type: String,
+  enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+}],
+
   productId:{
   type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
@@ -49,6 +54,10 @@ type: String,
     type: Date,
     default: Date.now,
   },
+  total:{
+    type: Number,
+    required:true
+  }
 });
 
 module.exports = mongoose.model('Subscription', subscriptionSchema);

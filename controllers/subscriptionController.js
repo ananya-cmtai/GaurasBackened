@@ -1,18 +1,14 @@
 const Subscription = require('../models/Subscription');
 const Notification = require('../models/Notification');
 
-
 exports.createSubscription = async (req, res) => {
-  const { subscriptionType, productId, startDate: startDateString,address,numberPacket } = req.body;
+  const { subscriptionType, productId, startDate: startDateString, address, numberPacket, total, deliveryDays } = req.body;
 
   try {
     const user = req.user._id;
 
-    if (!startDateString) {
-      return res.status(400).json({ message: 'Start date is required' });
-    }
-      if (!address) {
-      return res.status(400).json({ message: 'Address is required' });
+    if (!startDateString || !address) {
+      return res.status(400).json({ message: 'Start date and address are required' });
     }
 
     const startDate = new Date(startDateString);
@@ -20,24 +16,22 @@ exports.createSubscription = async (req, res) => {
       return res.status(400).json({ message: 'Invalid start date format' });
     }
 
-    let endDate = new Date(startDate);
-    let renewalDate = new Date(startDate);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 30); // Fixed 30 days duration
+    const renewalDate = new Date(endDate); // You can update this logic if renewal happens earlier
 
-    switch (subscriptionType) {
-      case 'Daily':
-        endDate.setDate(endDate.getDate() + 1);
-        renewalDate.setDate(renewalDate.getDate() + 1);
-        break;
-      case 'Alternate':
-        endDate.setDate(endDate.getDate() + 2);
-        renewalDate.setDate(renewalDate.getDate() + 2);
-        break;
-      case 'Monthly':
-        endDate.setMonth(endDate.getMonth() + 1);
-        renewalDate.setMonth(renewalDate.getMonth() + 1);
-        break;
-      default:
-        return res.status(400).json({ message: 'Invalid subscription type' });
+    // Weekly type requires deliveryDays
+    if (subscriptionType === 'Weekly') {
+      if (!Array.isArray(deliveryDays) || deliveryDays.length === 0) {
+        return res.status(400).json({ message: 'deliveryDays is required for weekly subscription' });
+      }
+
+      // Optional: validate deliveryDays values
+      const validDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const isValid = deliveryDays.every(day => validDays.includes(day));
+      if (!isValid) {
+        return res.status(400).json({ message: 'Invalid deliveryDays values' });
+      }
     }
 
     const sub = await Subscription.create({
@@ -46,8 +40,11 @@ exports.createSubscription = async (req, res) => {
       startDate,
       endDate,
       renewalDate,
-      productId,address,
-      numberPacket
+      productId,
+      address,
+      total,
+      numberPacket,
+      deliveryDays: subscriptionType === 'Weekly' ? deliveryDays : undefined
     });
 
     res.status(201).json(sub);
@@ -56,6 +53,7 @@ exports.createSubscription = async (req, res) => {
     res.status(500).json({ message: 'Failed to create subscription' });
   }
 };
+
 
 
 exports.skipToday = async (req, res) => {
