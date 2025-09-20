@@ -28,9 +28,9 @@ exports.createSubscription = async (req, res) => {
         endDate.setDate(endDate.getDate() + 1);
         renewalDate.setDate(renewalDate.getDate() + 1);
         break;
-      case 'Weekly':
-        endDate.setDate(endDate.getDate() + 7);
-        renewalDate.setDate(renewalDate.getDate() + 7);
+      case 'Alternate':
+        endDate.setDate(endDate.getDate() + 2);
+        renewalDate.setDate(renewalDate.getDate() + 2);
         break;
       case 'Monthly':
         endDate.setMonth(endDate.getMonth() + 1);
