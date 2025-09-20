@@ -116,15 +116,37 @@ exports.setSkippedDates = async (req, res) => {
       return res.status(404).json({ message: 'Subscription not found' });
     }
 
-    subscription.skippedDates = skippedDates.map(date => new Date(date));
+    const startDate = new Date(subscription.startDate);
+    
+    // Original end date before skips (fixed 30 days from start)
+    const originalEndDate = new Date(startDate);
+    originalEndDate.setDate(originalEndDate.getDate() + 30);
 
-    if (subscription.subscriptionType.toLowerCase() === 'Daily') {
-      const baseDuration = 30;
-      const newRenewalDate = new Date(subscription.startDate);
-      newRenewalDate.setDate(newRenewalDate.getDate() + baseDuration + subscription.skippedDates.length);
+    // Validate skippedDates are within [startDate, originalEndDate]
+    const validSkippedDates = skippedDates
+      .map(date => new Date(date))
+      .filter(date =>
+        date >= startDate &&
+        date <= originalEndDate
+      );
 
-      subscription.renewalDate = newRenewalDate;
-      subscription.endDate = newRenewalDate;
+    if (validSkippedDates.length !== skippedDates.length) {
+      return res.status(400).json({
+        message: 'Some skipped dates are outside the valid subscription period',
+      });
+    }
+
+    subscription.skippedDates = validSkippedDates;
+
+    if (subscription.subscriptionType.toLowerCase() === 'daily') {
+      const extensionDays = validSkippedDates.length;
+
+      // Extend endDate and renewalDate
+      const newEndDate = new Date(startDate);
+      newEndDate.setDate(newEndDate.getDate() + 30 + extensionDays);
+
+      subscription.endDate = newEndDate;
+      subscription.renewalDate = newEndDate;
     }
 
     await subscription.save();
@@ -132,6 +154,8 @@ exports.setSkippedDates = async (req, res) => {
     res.status(200).json({
       message: 'Skipped dates updated successfully',
       skippedDates: subscription.skippedDates,
+      endDate: subscription.endDate,
+      renewalDate: subscription.renewalDate,
     });
   } catch (error) {
     console.error('Error updating skipped dates:', error);
