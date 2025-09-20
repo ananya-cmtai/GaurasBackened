@@ -6,6 +6,9 @@ exports.addFunds = async (req, res) => {
  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ message: "Missing required Razorpay details." });
     }
+ if (!amount) {
+      return res.status(400).json({ message: "Missing required amount details." });
+    }
 
     // Verify Razorpay payment signature
     const generated_signature = crypto.createHmac('sha256', "2kA1raBV7KriMGR8EHoQAXY0")
