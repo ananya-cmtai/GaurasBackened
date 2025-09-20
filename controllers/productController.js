@@ -10,7 +10,7 @@ exports.getAllProducts = async (req, res) => {
 };
 
 exports.addProduct = async (req, res) => {
-  const { name, category, price, stock, quantity, description } = req.body;
+  const { name, category, price, stock, quantity, description,   alternatePrice,dailyPrice,weeklyPrice, } = req.body;
   // description expected to be an array of strings
   // if it comes as string (single point), convert to array
   let descArray = [];
@@ -30,6 +30,7 @@ exports.addProduct = async (req, res) => {
       stock,
       quantity,
       description: descArray,
+      alternatePrice,dailyPrice,weeklyPrice,
       imageUrl: req.file ? req.file.path : null,
     });
     res.status(201).json(product);
@@ -41,7 +42,7 @@ exports.addProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   const { productId } = req.params;
-  const { name, category, price, stock, quantity, description } = req.body;
+  const { name, category, price, stock, quantity, description ,   alternatePrice,dailyPrice,weeklyPrice,} = req.body;
 
   const updateFields = {};
 
@@ -50,6 +51,9 @@ exports.updateProduct = async (req, res) => {
   if (price) updateFields.price = price;
   if (stock) updateFields.stock = stock;
   if (quantity) updateFields.quantity = quantity;
+    if (alternatePrice) updateFields.alternatePrice = alternatePrice;
+  if (dailyPrice) updateFields.dailyPrice = dailyPrice;
+  if (weeklyPrice) updateFields.weeklyPrice = weeklyPrice;
 
   // description updates here (replace full array if provided)
   if (description) {
