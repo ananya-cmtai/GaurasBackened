@@ -74,8 +74,10 @@ exports.getOrdersByUser = async (req, res) => {
 
   try {
     const orders = await Order.find({ user: userId }).populate('products.productId');
-
-    res.status(200).json(orders);
+ const sortedTOrders = orders.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+    res.status(200).json(sortedTOrders);
   } catch (err) {
     res.status(500).json({ message: 'Could not fetch orders', error: err.message });
   }
