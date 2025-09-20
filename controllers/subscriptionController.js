@@ -96,11 +96,13 @@ exports.getSubscriptions = async (req, res) => {
       path: 'productId',
       model: 'Product',
     });
-
+ const sortedsubscriptions = subscriptions.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
     const today = new Date();
 
     const updatedSubscriptions = await Promise.all(
-      subscriptions.map(async (sub) => {
+      sortedsubscriptions.map(async (sub) => {
         if (sub.status === 'Active' && sub.renewalDate < today) {
           sub.status = 'Expired';
           await sub.save(); // Update in DB
