@@ -90,7 +90,12 @@ exports.skipToday = async (req, res) => {
 exports.getSubscriptions = async (req, res) => {
   try {
     const userId = req.user._id;
-    const subs = await Subscription.find({ user: userId });
+  
+
+    const subs = await Subscription.find({ user: userId })   .populate({
+        path: 'productId',
+        model: 'Product'  // Make sure 'Product' is the correct model name
+      });
     res.json({ subscriptions: subs });
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch subscriptions', error: error.message });
