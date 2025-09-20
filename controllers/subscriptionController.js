@@ -91,17 +91,30 @@ exports.skipToday = async (req, res) => {
 exports.getSubscriptions = async (req, res) => {
   try {
     const userId = req.user._id;
-  
 
-    const subs = await Subscription.find({ user: userId })   .populate({
-        path: 'productId',
-        model: 'Product'  // Make sure 'Product' is the correct model name
-      });
-    res.json({ subscriptions: subs });
+    const subscriptions = await Subscription.find({ user: userId }).populate({
+      path: 'productId',
+      model: 'Product',
+    });
+
+    const today = new Date();
+
+    const updatedSubscriptions = await Promise.all(
+      subscriptions.map(async (sub) => {
+        if (sub.status === 'Active' && sub.renewalDate < today) {
+          sub.status = 'Expired';
+          await sub.save(); // Update in DB
+        }
+        return sub;
+      })
+    );
+
+    res.json({ subscriptions: updatedSubscriptions });
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch subscriptions', error: error.message });
   }
 };
+
 exports.setSkippedDates = async (req, res) => {
   const { subscriptionId } = req.params;
   const { skippedDates } = req.body;

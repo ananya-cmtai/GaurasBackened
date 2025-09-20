@@ -41,7 +41,7 @@ type: String,
   },
   status: {
     type: String,
-    enum: ['Active', 'Inactive', 'Cancelled'],
+    enum: ['Active', 'Expired', 'Cancelled'],
     default: 'Active',
   },
   numberPacket:{
