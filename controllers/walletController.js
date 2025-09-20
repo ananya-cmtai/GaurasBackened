@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const crypto = require('crypto');
+const Razorpay = require('razorpay');
 
 exports.addFunds = async (req, res) => {
   const { amount, description,razorpay_order_id,razorpay_signature,razorpay_payment_id } = req.body;
