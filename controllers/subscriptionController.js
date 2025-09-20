@@ -176,7 +176,16 @@ subscription.skippedDates = uniqueSkippedDates;
       subscription.endDate = newEndDate;
       subscription.renewalDate = newEndDate;
     }
-  
+  if (subscription.subscriptionType === 'Alternate') {
+  const extensionDays = uniqueSkippedDates.length * 2;
+
+  const newEndDate = new Date(startDate);
+  newEndDate.setDate(newEndDate.getDate() + 30 + extensionDays);
+
+  subscription.endDate = newEndDate;
+  subscription.renewalDate = newEndDate;
+}
+
 if (subscription.subscriptionType === 'Weekly') {
   const extensionDays = uniqueSkippedDates.length * 7;
 
