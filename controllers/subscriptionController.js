@@ -118,7 +118,7 @@ exports.setSkippedDates = async (req, res) => {
 
     subscription.skippedDates = skippedDates.map(date => new Date(date));
 
-    if (subscription.subscriptionType.toLowerCase() === 'daily') {
+    if (subscription.subscriptionType.toLowerCase() === 'Daily') {
       const baseDuration = 30;
       const newRenewalDate = new Date(subscription.startDate);
       newRenewalDate.setDate(newRenewalDate.getDate() + baseDuration + subscription.skippedDates.length);
