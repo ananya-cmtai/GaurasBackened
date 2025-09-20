@@ -138,7 +138,7 @@ exports.setSkippedDates = async (req, res) => {
 
     subscription.skippedDates = validSkippedDates;
 
-    if (subscription.subscriptionType.toLowerCase() === 'Daily') {
+    if (subscription.subscriptionType === 'Daily') {
       const extensionDays = validSkippedDates.length;
 
       // Extend endDate and renewalDate
