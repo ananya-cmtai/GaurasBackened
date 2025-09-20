@@ -149,10 +149,23 @@ exports.setSkippedDates = async (req, res) => {
       });
     }
 
-    subscription.skippedDates = validSkippedDates;
+ const existingSkippedDates = subscription.skippedDates || [];
+
+// Combine existing + new dates
+const allDates = [...existingSkippedDates, ...validSkippedDates];
+
+// Remove duplicates using string date
+const uniqueSkippedDates = Array.from(new Set(
+  allDates.map(date => new Date(date).toISOString().split('T')[0])
+)).map(dateStr => new Date(dateStr));
+
+// Save
+subscription.skippedDates = uniqueSkippedDates;
+
 
     if (subscription.subscriptionType === 'Daily') {
-      const extensionDays = validSkippedDates.length;
+   const extensionDays = uniqueSkippedDates.length;
+
 
       // Extend endDate and renewalDate
       const newEndDate = new Date(startDate);
@@ -161,8 +174,9 @@ exports.setSkippedDates = async (req, res) => {
       subscription.endDate = newEndDate;
       subscription.renewalDate = newEndDate;
     }
-    if (subscription.subscriptionType === 'Weekly') {
-      const extensionDays = validSkippedDates.length *7;
+  
+if (subscription.subscriptionType === 'Weekly') {
+  const extensionDays = uniqueSkippedDates.length * 7;
 
       // Extend endDate and renewalDate
       const newEndDate = new Date(startDate);
