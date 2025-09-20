@@ -102,7 +102,6 @@ exports.getSubscriptions = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch subscriptions', error: error.message });
   }
 };
-
 exports.setSkippedDates = async (req, res) => {
   const { subscriptionId } = req.params;
   const { skippedDates } = req.body;
@@ -117,8 +116,17 @@ exports.setSkippedDates = async (req, res) => {
       return res.status(404).json({ message: 'Subscription not found' });
     }
 
-    // Store new skipped dates
     subscription.skippedDates = skippedDates.map(date => new Date(date));
+
+    if (subscription.subscriptionType.toLowerCase() === 'daily') {
+      const baseDuration = 30;
+      const newRenewalDate = new Date(subscription.startDate);
+      newRenewalDate.setDate(newRenewalDate.getDate() + baseDuration + subscription.skippedDates.length);
+
+      subscription.renewalDate = newRenewalDate;
+      subscription.endDate = newRenewalDate;
+    }
+
     await subscription.save();
 
     res.status(200).json({
@@ -130,3 +138,4 @@ exports.setSkippedDates = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
