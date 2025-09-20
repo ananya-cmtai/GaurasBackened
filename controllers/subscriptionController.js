@@ -161,6 +161,16 @@ exports.setSkippedDates = async (req, res) => {
       subscription.endDate = newEndDate;
       subscription.renewalDate = newEndDate;
     }
+    if (subscription.subscriptionType === 'Weekly') {
+      const extensionDays = validSkippedDates.length *7;
+
+      // Extend endDate and renewalDate
+      const newEndDate = new Date(startDate);
+      newEndDate.setDate(newEndDate.getDate() + 30 + extensionDays);
+
+      subscription.endDate = newEndDate;
+      subscription.renewalDate = newEndDate;
+    }
 
     await subscription.save();
 
