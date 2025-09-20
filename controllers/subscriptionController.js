@@ -2,8 +2,24 @@ const Subscription = require('../models/Subscription');
 const Notification = require('../models/Notification');
 
 exports.createSubscription = async (req, res) => {
-  const { subscriptionType, productId, startDate: startDateString, address, numberPacket, total, deliveryDays } = req.body;
+  const { subscriptionType, productId, startDate: startDateString, address, numberPacket, total, deliveryDays , razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+  
+      paymentVerified,
+       deliveryFee,
+      gst,
+      discount,} = req.body;
+ if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ message: "Missing required Razorpay details." });
+    }
+    const generated_signature = crypto.createHmac('sha256', "2kA1raBV7KriMGR8EHoQAXY0")
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .digest('hex');
 
+    if (generated_signature !== razorpay_signature) {
+      return res.status(400).json({ message: 'Payment verification failed' });
+    }
   try {
     const user = req.user._id;
 
@@ -44,6 +60,15 @@ exports.createSubscription = async (req, res) => {
       total,
       numberPacket,
       deliveryDays: subscriptionType === 'Weekly' ? deliveryDays : undefined,
+       
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+  
+      paymentVerified,
+       deliveryFee,
+      gst,
+      discount,
     });
 
     res.status(201).json(sub);

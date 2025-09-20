@@ -57,7 +57,28 @@ type: String,
   total:{
     type: Number,
     required:true
-  }
+  }, paymentDetails: {
+    razorpay_order_id: { type: String },
+    razorpay_payment_id: { type: String },
+       razorpay_signature: { type: String },
+  },
+  // Optionally, keep track of payment verification status
+  paymentVerified: {
+    type: Boolean,
+    default: false,
+  },
+    deliveryFee: {
+    type: Number,
+ 
+  },
+  gst: {
+    type: Number,
+ 
+  },
+  discount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 module.exports = mongoose.model('Subscription', subscriptionSchema);
