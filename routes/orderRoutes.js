@@ -4,7 +4,7 @@ const orderController = require('../controllers/orderController');
 const { protect } = require('../middleware/auth');
 // Place an order
 router.get('/by-delivery-boy', protect,orderController.getOrdersByDeliveryBoy);
-router.get('/order/:orderId',protect, orderController.getOrderById);
+router.get('/orderById/:orderId',protect, orderController.getOrderById);
 router.get('/user/:userId',protect, orderController.getOrdersByUser);
 router.post('/',protect, orderController.placeOrder);
 router.post('/assign-delivery-boy', orderController.assignDeliveryBoyToOrder);
