@@ -1,7 +1,7 @@
 // Get cart for logged-in user
 const Cart = require('../models/Cart');
 
-export const getCart = async (req, res) => {
+exports.getCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({ user: req.user._id });
     if (!cart) return res.status(200).json({ items: [] }); // empty cart
@@ -13,7 +13,7 @@ export const getCart = async (req, res) => {
   }
 };
 // Save/update cart for logged-in user
-export const saveCart = async (req, res) => {
+exports.saveCart = async (req, res) => {
   try {
     const { items } = req.body;
 
