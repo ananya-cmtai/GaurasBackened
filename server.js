@@ -21,7 +21,8 @@ const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const homeRoutes =require('./routes/homeRoutes');
 const walletRoutes =require('./routes/walletRoutes');
-const cartRoutes= require('./routes/cartRoutes')
+const cartRoutes= require('./routes/cartRoutes');
+const favrouiteRoutes=  require('./routes/favouriteRoutes');
 // Use routes
 app.use('/api/users', userRoutes);
 app.use('/api/home', homeRoutes);
@@ -31,7 +32,7 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/cart', cartRoutes);
-
+app.use('/api/favourite', favrouiteRoutes);
 // Start notification scheduler (cron job)
 scheduleNotificationJob();
 
