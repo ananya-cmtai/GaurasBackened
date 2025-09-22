@@ -83,6 +83,10 @@ type: String,
     type: Number,
     default: 0,
   },
+  deliveryBoy:{
+     type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }
 });
 
 module.exports = mongoose.model('Subscription', subscriptionSchema);

@@ -17,4 +17,6 @@ router.post('/:subscriptionId/skip', protect, subscriptionController.skipToday);
 // Update skippedDates manually (from calendar UI)
 router.post('/:subscriptionId/skip-dates', protect, subscriptionController.setSkippedDates);
 
+router.get('/subscription-today', protect, subscriptionController.getTodaySubscriptions);
+
 module.exports = router;

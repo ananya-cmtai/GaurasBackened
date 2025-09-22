@@ -2,6 +2,7 @@ const Subscription = require('../models/Subscription');
 const Notification = require('../models/Notification');
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
+const moment = require('moment');
 exports.createSubscription = async (req, res) => {
   const { subscriptionType, productId, startDate: startDateString, address, numberPacket, total, deliveryDays , razorpay_order_id,
         razorpay_payment_id,
@@ -238,3 +239,29 @@ if (subscription.subscriptionType === 'Weekly') {
   }
 };
 
+
+exports.getTodaySubscriptions = async (req, res) => {
+  try {
+    const deliveryBoyId = req.user.id; // Assuming from JWT
+    const today = moment().startOf('day').toDate(); // e.g. "2025-09-22T00:00:00Z"
+    const todayName = moment().format('dddd'); // "Monday", etc.
+
+    const subscriptions = await Subscription.find({
+      deliveryBoy: deliveryBoyId,
+      status: 'Active',
+      startDate: { $lte: today },
+      endDate: { $gte: today },
+      skippedDates: { $ne: today },
+      $or: [
+        { subscriptionType: 'Daily' },
+        { subscriptionType: 'Alternate', 'startDate': { $mod: [2, 0] } }, // Optional logic
+        { subscriptionType: 'Weekly', deliveryDays: todayName }
+      ]
+    }).populate('user').populate('productId');
+
+    res.status(200).json({ data: subscriptions });
+  } catch (error) {
+    console.error('Error fetching today’s subscriptions:', error);
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+};
