@@ -292,7 +292,7 @@ exports.assignDeliveryBoyToOrder = async (req, res) => {
 };
 
 exports.getOrdersByDeliveryBoy = async (req, res) => {
-  const { deliveryBoyId } = req.params; // Assuming you're sending deliveryBoyId via URL param
+  const deliveryBoyId = req.user._id;
 
   try {
     const orders = await Order.find({ deliveryBoy: deliveryBoyId })

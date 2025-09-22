@@ -14,6 +14,6 @@ router.put('/order/:orderId/status', orderController.updateOrderStatus);
 router.post('/assign-delivery-boy', orderController.assignDeliveryBoy);
 
 
-router.get('/by-delivery-boy/:deliveryBoyId', orderController.getOrdersByDeliveryBoy);
+router.get('/by-delivery-boy', protect,orderController.getOrdersByDeliveryBoy);
 
 module.exports = router;
