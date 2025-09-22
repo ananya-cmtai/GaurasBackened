@@ -1,0 +1,37 @@
+// Get cart for logged-in user
+const Cart = require('../models/Cart');
+
+export const getCart = async (req, res) => {
+  try {
+    const cart = await Cart.findOne({ user: req.user._id });
+    if (!cart) return res.status(200).json({ items: [] }); // empty cart
+
+    res.status(200).json({ items: cart.items });
+  } catch (err) {
+    console.error('Cart fetch error:', err);
+    res.status(500).json({ message: 'Failed to fetch cart' });
+  }
+};
+// Save/update cart for logged-in user
+export const saveCart = async (req, res) => {
+  try {
+    const { items } = req.body;
+
+    let cart = await Cart.findOne({ user: req.user._id });
+
+    if (!cart) {
+      cart = new Cart({
+        user: req.user._id,
+        items,
+      });
+    } else {
+      cart.items = items;
+    }
+
+    await cart.save();
+    res.status(200).json({ message: 'Cart saved successfully' });
+  } catch (err) {
+    console.error('Cart save error:', err);
+    res.status(500).json({ message: 'Failed to save cart' });
+  }
+};
