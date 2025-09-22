@@ -262,22 +262,31 @@ await user.save();
 };
 
 exports.assignDeliveryBoyToOrder = async (req, res) => {
-    const { orderId,deliveryBoyId } = req.body;
+  const { orderId, deliveryBoyId } = req.body;
+
   try {
     const order = await Order.findById(orderId);
 
     if (!order) {
-      return { success: false, message: 'Order not found' };
+      return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
     order.deliveryBoy = deliveryBoyId;
-  
 
     const updatedOrder = await order.save();
 
-    return { success: true, message: 'Delivery boy assigned successfully', data: updatedOrder };
+    return res.status(200).json({
+      success: true,
+      message: 'Delivery boy assigned successfully',
+      data: updatedOrder,
+    });
+
   } catch (error) {
     console.error('Error assigning delivery boy:', error);
-    return { success: false, message: 'Error assigning delivery boy', error };
+    return res.status(500).json({
+      success: false,
+      message: 'Error assigning delivery boy',
+      error: error.message,
+    });
   }
 };
