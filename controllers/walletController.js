@@ -26,8 +26,11 @@ exports.addFunds = async (req, res) => {
   try {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
+const amount = Number(req.body.amount);
 
-    user.wallet.balance += amount;
+
+  user.wallet.balance += amount;
+
     user.wallet.transactions.push({
       type: 'Credit',
       amount,
