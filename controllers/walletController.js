@@ -78,7 +78,7 @@ exports.getWallet = async (req, res) => {
 };
 
 exports.deductFromWallet = async (req, res) => {
-  const {  description, orderId ,source} = req.body;
+  const { amount, description, orderId ,source} = req.body;
   const userId = req.user._id; // secure
 
   try {
@@ -88,7 +88,7 @@ exports.deductFromWallet = async (req, res) => {
     if (user.wallet.balance < amount) {
       return res.status(400).json({ message: 'Insufficient wallet balance' });
     }
-const amount = Number(req.body.amount);
+
     user.wallet.balance -= amount;
     user.wallet.transactions.push({
       type: 'Debit',
