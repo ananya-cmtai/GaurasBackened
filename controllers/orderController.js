@@ -314,3 +314,20 @@ exports.getOrdersByDeliveryBoy = async (req, res) => {
     });
   }
 };
+
+exports.getOrderById = async (req, res) => {
+  try {
+    const orderId = req.params; // From JWT middleware
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: 'order not found' });
+    }
+
+    res.status(200).json({ order });
+  } catch (error) {
+    console.error('Error getting profile:', error);
+    res.status(500).json({ message: 'Failed to get profile', error: error.message });
+  }
+};
