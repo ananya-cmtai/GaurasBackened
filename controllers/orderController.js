@@ -317,7 +317,8 @@ exports.getOrdersByDeliveryBoy = async (req, res) => {
 
 exports.getOrderById = async (req, res) => {
   try {
-    const orderId = req.params; // From JWT middleware
+   const { orderId } = req.params;
+
 
     const order = await Order.findById(orderId);
 
