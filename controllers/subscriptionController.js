@@ -242,7 +242,7 @@ if (subscription.subscriptionType === 'Weekly') {
 
 exports.getTodaySubscriptions = async (req, res) => {
   try {
-    const deliveryBoyId = req.user.id; // Assuming from JWT
+    const deliveryBoyId = req.user._id; // Assuming from JWT
     const today = moment().startOf('day').toDate(); // e.g. "2025-09-22T00:00:00Z"
     const todayName = moment().format('dddd'); // "Monday", etc.
 
