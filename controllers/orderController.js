@@ -318,15 +318,18 @@ exports.getOrdersByDeliveryBoy = async (req, res) => {
 exports.getOrderById = async (req, res) => {
   try {
    const { orderId } = req.params;
+  const orders = await Order.findById(orderId).populate('products.productId');
+ const sortedTOrders = orders.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
 
+ 
 
-    const order = await Order.findById(orderId);
-
-    if (!order) {
+    if (!sortedTOrders) {
       return res.status(404).json({ message: 'order not found' });
     }
 
-    res.status(200).json({ order });
+    res.status(200).json({ sortedTOrders });
   } catch (error) {
     console.error('Error getting profile:', error);
     res.status(500).json({ message: 'Failed to get profile', error: error.message });
