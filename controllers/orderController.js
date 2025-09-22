@@ -133,6 +133,7 @@ exports.updateOrderStatus = async (req, res) => {
          if (!user) {
       throw new Error('User not found');
     }
+    if(order.paymentMode==="Razorpay"){
 const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = order.paymentDetails;
 
     // Generate the signature on the server side using the order_id and payment_id
@@ -147,7 +148,7 @@ const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = order.pay
     if (generated_signature !== razorpay_signature) {
       return res.status(400).json({ message: 'Payment verification failed. Signature mismatch.' });
     }
-
+  }
     // Handle refund when order is canceled
     if (status === 'Cancelled' && order.paymentVerified && !order.paymentRefunded && paymentMode==="Razorpay") {
       try {
