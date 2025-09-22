@@ -290,3 +290,27 @@ exports.assignDeliveryBoyToOrder = async (req, res) => {
     });
   }
 };
+
+exports.getOrdersByDeliveryBoy = async (req, res) => {
+  const { deliveryBoyId } = req.params; // Assuming you're sending deliveryBoyId via URL param
+
+  try {
+    const orders = await Order.find({ deliveryBoy: deliveryBoyId })
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .populate('user', 'name email phone') // Optional: populate user info
+      .populate('deliveryBoy', 'name email phone'); // Optional: populate delivery boy info
+
+    return res.status(200).json({
+      success: true,
+      count: orders.length,
+      data: orders,
+    });
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching orders',
+      error: error.message,
+    });
+  }
+};

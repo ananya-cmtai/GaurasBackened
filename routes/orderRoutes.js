@@ -13,4 +13,7 @@ router.put('/order/:orderId/status', orderController.updateOrderStatus);
 // routes/orderRoutes.js
 router.post('/assign-delivery-boy', orderController.assignDeliveryBoy);
 
+
+router.get('/by-delivery-boy/:deliveryBoyId', orderController.getOrdersByDeliveryBoy);
+
 module.exports = router;
