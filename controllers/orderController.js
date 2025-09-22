@@ -128,6 +128,11 @@ exports.updateOrderStatus = async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
     const order = await Order.findById(orderId); 
+    const userId=order.user;
+      const user = await User.findById(userId); 
+         if (!user) {
+      throw new Error('User not found');
+    }
 const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = order.paymentDetails;
 
     // Generate the signature on the server side using the order_id and payment_id
@@ -144,7 +149,7 @@ const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = order.pay
     }
 
     // Handle refund when order is canceled
-    if (status === 'Cancelled' && order.paymentVerified && !order.paymentRefunded) {
+    if (status === 'Cancelled' && order.paymentVerified && !order.paymentRefunded && paymentMode==="Razorpay") {
       try {
         // Set refund status to "Processing"
         order.refundStatus = 'Processing';
@@ -160,6 +165,62 @@ const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = order.pay
         const refundResponse = await refundPayment(order.paymentDetails.razorpay_payment_id, order.total * 100); // Total in paise
 
         // If refund is successful, update order details
+        order.paymentRefunded = true;
+        order.refundStatus = 'Refunded';  // Mark as refunded
+        order.refundMessage = 'Refund successful';  // Success message
+
+        // Save the updated order after refund
+        await order.save();
+
+        console.log('Refund successful for Order ID:', order._id);
+      } catch (refundError) {
+        console.error('Refund failed for Order:', order._id, refundError);
+
+        // Handle refund failure
+        order.refundStatus = 'Failed';
+        order.refundMessage = `Refund failed. Reason: ${refundError.message}`;
+
+        // Save the order with failure status
+        await order.save();
+
+        // Send a detailed response to the user with error information
+        return res.status(500).json({
+          message: "Refund failed. Order status not updated.",
+          error: refundError.message,  // Detailed error message for debugging
+          orderId: order._id,
+        });
+      }
+    }
+
+
+
+      if (status === 'Cancelled' && order.paymentVerified && !order.paymentRefunded && paymentMode==="Wallet") {
+      try {
+        // Set refund status to "Processing"
+        order.refundStatus = 'Processing';
+        order.refundMessage = 'Refund is being processed...';
+
+        // Save the order before refund to show current processing state
+        await order.save();
+
+  
+const refundAmount = order.total; 
+
+user.wallet.balance += refundAmount;
+
+user.wallet.transactions.push({
+  type: 'Credit',
+  amount: refundAmount,
+  description: 'Refund for cancelled order',
+  source: 'Order Refund',
+  orderId: order._id,
+  paymentMode: 'Wallet',
+  paymentVerified: true,
+});
+
+await user.save();
+
+     
         order.paymentRefunded = true;
         order.refundStatus = 'Refunded';  // Mark as refunded
         order.refundMessage = 'Refund successful';  // Success message
