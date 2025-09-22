@@ -112,7 +112,7 @@ exports.updateOrderStatus = async (req, res) => {
     const { status } = req.body;
 
     // वैलिड स्टेटस चेक करें
-    const validStatuses = ['Pending', 'Delivered', 'Cancelled', 'Shipped'];
+    const validStatuses = ['Pending', 'Delivered', 'Cancelled', 'Accepted'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid status value' });
     }
