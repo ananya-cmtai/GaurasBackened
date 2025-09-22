@@ -261,7 +261,8 @@ await user.save();
   }
 };
 
-exports.assignDeliveryBoyToOrder = async (orderId, deliveryBoyId) => {
+exports.assignDeliveryBoyToOrder = async (req, res) => {
+    const { orderId,deliveryBoyId } = req.body;
   try {
     const order = await Order.findById(orderId);
 
