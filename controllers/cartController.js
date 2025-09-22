@@ -17,18 +17,12 @@ exports.saveCart = async (req, res) => {
   try {
     const { items } = req.body;
 
-    let cart = await Cart.findOne({ user: req.user._id });
+    await Cart.findOneAndUpdate(
+      { user: req.user._id },
+      { $set: { items } },
+      { new: true, upsert: true } // upsert ensures cart is created if not exists
+    );
 
-    if (!cart) {
-      cart = new Cart({
-        user: req.user._id,
-        items,
-      });
-    } else {
-      cart.items = items;
-    }
-
-    await cart.save();
     res.status(200).json({ message: 'Cart saved successfully' });
   } catch (err) {
     console.error('Cart save error:', err);
