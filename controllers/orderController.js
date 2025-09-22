@@ -260,3 +260,23 @@ await user.save();
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+exports.assignDeliveryBoyToOrder = async (orderId, deliveryBoyId) => {
+  try {
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return { success: false, message: 'Order not found' };
+    }
+
+    order.deliveryBoy = deliveryBoyId;
+  
+
+    const updatedOrder = await order.save();
+
+    return { success: true, message: 'Delivery boy assigned successfully', data: updatedOrder };
+  } catch (error) {
+    console.error('Error assigning delivery boy:', error);
+    return { success: false, message: 'Error assigning delivery boy', error };
+  }
+};

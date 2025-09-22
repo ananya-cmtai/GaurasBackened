@@ -73,6 +73,11 @@ const orderSchema = new mongoose.Schema({
   },
    refundStatus: { type: String, default: 'Not Initiated' },  // 'Not Initiated', 'Processing', 'Refunded', 'Failed'
   refundMessage: { type: String, default: '' }, 
+  deliveryBoy:{
+   type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    
+  }
 });
 
 module.exports = mongoose.model('Order', orderSchema);

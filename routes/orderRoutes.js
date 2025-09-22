@@ -10,5 +10,7 @@ router.get('/user/:userId',protect, orderController.getOrdersByUser);
 
 router.put('/order/:orderId/status', orderController.updateOrderStatus);
        router.route('/razorpay/order').post(protect, orderController.createRazorpayOrderController);
+// routes/orderRoutes.js
+router.post('/assign-delivery-boy', orderController.assignDeliveryBoy);
 
 module.exports = router;

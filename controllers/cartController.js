@@ -20,7 +20,7 @@ exports.saveCart = async (req, res) => {
     await Cart.findOneAndUpdate(
       { user: req.user._id },
       { $set: { items } },
-      { new: true, upsert: true } // upsert ensures cart is created if not exists
+      { new: true, upsert: true } 
     );
 
     res.status(200).json({ message: 'Cart saved successfully' });
