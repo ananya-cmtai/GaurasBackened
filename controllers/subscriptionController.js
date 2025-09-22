@@ -240,13 +240,16 @@ if (subscription.subscriptionType === 'Weekly') {
 };
 
 
+
+
 exports.getTodaySubscriptions = async (req, res) => {
   try {
-    const deliveryBoyId = req.user._id; // Assuming from JWT
-    const today = moment().startOf('day').toDate(); // e.g. "2025-09-22T00:00:00Z"
-    const todayName = moment().format('dddd'); // "Monday", etc.
+    const deliveryBoyId = req.user.id;
+    const today = moment().startOf('day').toDate();
+    const todayName = moment().format('dddd');
 
-    const subscriptions = await Subscription.find({
+    // Fetch Daily and Weekly subscriptions directly from DB
+    const dailyAndWeeklySubs = await Subscription.find({
       deliveryBoy: deliveryBoyId,
       status: 'Active',
       startDate: { $lte: today },
@@ -254,12 +257,30 @@ exports.getTodaySubscriptions = async (req, res) => {
       skippedDates: { $ne: today },
       $or: [
         { subscriptionType: 'Daily' },
-        { subscriptionType: 'Alternate', 'startDate': { $mod: [2, 0] } }, // Optional logic
-        { subscriptionType: 'Weekly', deliveryDays: todayName }
-      ]
+        { subscriptionType: 'Weekly', deliveryDays: todayName },
+      ],
     }).populate('user').populate('productId');
 
-    res.status(200).json({ data: subscriptions });
+    // Fetch all Alternate subscriptions active today
+    const alternateSubs = await Subscription.find({
+      deliveryBoy: deliveryBoyId,
+      status: 'Active',
+      subscriptionType: 'Alternate',
+      startDate: { $lte: today },
+      endDate: { $gte: today },
+      skippedDates: { $ne: today },
+    }).populate('user').populate('productId');
+
+    // Filter alternate subscriptions to only those where days difference from startDate is even
+    const filteredAlternateSubs = alternateSubs.filter((sub) => {
+      const start = moment(sub.startDate).startOf('day');
+      const diffDays = moment(today).diff(start, 'days');
+      return diffDays % 2 === 0;
+    });
+
+    const allSubscriptions = [...dailyAndWeeklySubs, ...filteredAlternateSubs];
+
+    res.status(200).json({ data: allSubscriptions });
   } catch (error) {
     console.error('Error fetching today’s subscriptions:', error);
     res.status(500).json({ error: 'Something went wrong.' });
