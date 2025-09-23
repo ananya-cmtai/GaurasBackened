@@ -286,3 +286,15 @@ exports.getTodaySubscriptions = async (req, res) => {
     res.status(500).json({ error: 'Something went wrong.' });
   }
 };
+
+
+exports.getSubscriptionById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const subscription = await Subscription.findById(id).populate('products.productId');
+    res.status(200).json(subscription);
+  } catch (err) {
+    res.status(500).json({ message: 'Could not fetch subscription', error: err.message });
+  }
+};
