@@ -6,7 +6,7 @@ const { protect } = require('../middleware/auth');
 // 🔐 Protect all routes using 'protect' middleware
 router.get('/', protect, subscriptionController.getSubscriptions);
 
-router.get('/:id', protect, subscriptionController.getSubscriptionById);
+router.get('/getById/:id', protect, subscriptionController.getSubscriptionById);
 // Create a new subscription
 router.post('/', protect, subscriptionController.createSubscription);
 
