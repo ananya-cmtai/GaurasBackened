@@ -292,10 +292,21 @@ exports.getSubscriptionById = async (req, res) => {
   const { id } = req.params;
 
   try {
-const subscription = await Subscription.findById(id).populate('productId').populate('user');
+    console.log("Getting subscription for ID:", id);
 
-    res.status(200).json(subscription);
+    const subscription = await Subscription.findById(id)
+      .populate('productId')
+      .populate('user');
+
+    if (!subscription) {
+      console.warn("Subscription not found for ID:", id);
+      return res.status(404).json({ message: 'Subscription not found' });
+    }
+
+    res.status(200).json({ data: subscription });
   } catch (err) {
+    console.error("Error fetching subscription:", err);
     res.status(500).json({ message: 'Could not fetch subscription', error: err.message });
   }
 };
+
