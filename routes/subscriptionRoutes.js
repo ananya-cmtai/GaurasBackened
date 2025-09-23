@@ -4,14 +4,14 @@ const subscriptionController = require('../controllers/subscriptionController');
 const { protect } = require('../middleware/auth');
 
 // 🔐 Protect all routes using 'protect' middleware
+router.get('/', protect, subscriptionController.getSubscriptions);
 
+router.get('/:id', protect, subscriptionController.getSubscriptionById);
 // Create a new subscription
 router.post('/', protect, subscriptionController.createSubscription);
 
 // Get all subscriptions for logged-in user
-router.get('/', protect, subscriptionController.getSubscriptions);
 
-router.get('/:id', protect, subscriptionController.getSubscriptionById);
 // Skip today's delivery (adds today to skippedDates)
 router.post('/:subscriptionId/skip', protect, subscriptionController.skipToday);
 

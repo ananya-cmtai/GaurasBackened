@@ -292,7 +292,8 @@ exports.getSubscriptionById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const subscription = await Subscription.findById(id).populate('products.productId');
+const subscription = await Subscription.findById(id).populate('productId').populate('user');
+
     res.status(200).json(subscription);
   } catch (err) {
     res.status(500).json({ message: 'Could not fetch subscription', error: err.message });
