@@ -147,12 +147,12 @@ exports.getSubscriptions = async (req, res) => {
 
 exports.setSkippedDates = async (req, res) => {
   const { subscriptionId } = req.params;
-  const { skippedDates } = req.body;
+  const { skippedDates,userId } = req.body;
 
   try {
     const subscription = await Subscription.findOne({
       _id: subscriptionId,
-      user: req.user._id,
+      user: userId|| req.user._id,
     });
 
     if (!subscription) {
