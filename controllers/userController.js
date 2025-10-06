@@ -30,7 +30,7 @@ exports.sendOtp = async (req, res) => {
 
 exports.verifyOtp = async (req, res) => {
   const { email, otp ,role,referredBy} = req.body;
-
+  console.log(email,otp,role,referredBy)
   if (!email || !otp) return res.status(400).json({ message: 'Email and OTP required' });
 
   const record = otpStore[email];
@@ -65,7 +65,7 @@ exports.verifyOtp = async (req, res) => {
         
         email,
       role,
-        referCode: generateReferCode(email), // auto-generate
+        referCode: generateReferCode(email), 
   referredBy: referredBy || null,
         // phone,
        
