@@ -249,6 +249,36 @@ await user.save();
       }
     }
   order.status = status;
+// Check for referral cashback on first successful delivery
+// ✅ Referral bonus logic
+if (status === 'Delivered') {
+  const deliveredOrders = await Order.find({
+    user: userId,
+    status: 'Delivered',
+  });
+
+  if (deliveredOrders.length === 1 && user.referredBy) {
+    const referrer = await User.findOne({ referCode: user.referredBy });
+
+    if (referrer) {
+      referrer.wallet.balance += 100;
+
+      referrer.wallet.transactions.push({
+        type: 'Credit',
+        amount: 100,
+        description: `Referral reward for ${user.email}`,
+        source: 'Referral Program',
+        paymentMode: 'Wallet',
+        paymentVerified: true,
+        orderId: order._id,
+      });
+
+      await referrer.save();
+      console.log(`₹100 referral credited to ${referrer.email}`);
+    }
+  }
+}
+
 
     // Save the updated order
     await order.save();

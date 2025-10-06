@@ -2,7 +2,7 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { sendOTPEmail } = require('../config/mail');
-
+const generateReferCode = require('../config/generateReferCode');
 const otpStore = {}; // { email: { otp, expiresAt, userId (optional) } }
 
 exports.sendOtp = async (req, res) => {
@@ -29,7 +29,7 @@ exports.sendOtp = async (req, res) => {
 };
 
 exports.verifyOtp = async (req, res) => {
-  const { email, otp ,role} = req.body;
+  const { email, otp ,role,referredBy} = req.body;
 
   if (!email || !otp) return res.status(400).json({ message: 'Email and OTP required' });
 
@@ -64,7 +64,9 @@ exports.verifyOtp = async (req, res) => {
       const newUser = await User.create({
         
         email,
-      role
+      role,
+        referCode: generateReferCode(name), // auto-generate
+  referredBy: referredBy || null,
         // phone,
        
       });

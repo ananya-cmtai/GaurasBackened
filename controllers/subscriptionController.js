@@ -1,5 +1,6 @@
 const Subscription = require('../models/Subscription');
 const Notification = require('../models/Notification');
+const User =require("../models/User");
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const moment = require('moment');
@@ -73,6 +74,33 @@ exports.createSubscription = async (req, res) => {
       gst,
       discount,
     });
+    // ✅ Referral bonus on first subscription
+const existingSubscriptions = await Subscription.find({ user });
+
+if (existingSubscriptions.length === 1) { // This is the first subscription
+  const currentUser = await User.findById(user);
+  if (currentUser && currentUser.referredBy) {
+    const referrer = await User.findOne({ referCode: currentUser.referredBy });
+
+    if (referrer) {
+      // Credit ₹100 to referrer's wallet
+      referrer.wallet.balance += 100;
+
+      referrer.wallet.transactions.push({
+        type: 'Credit',
+        amount: 100,
+        description: `Referral bonus from ${currentUser.email}'s subscription`,
+        source: 'Referral Program',
+        paymentMode: 'Wallet',
+        paymentVerified: true,
+      });
+
+      await referrer.save();
+      console.log(`Referral ₹100 added to ${referrer.email}`);
+    }
+  }
+}
+
 
     res.status(201).json(sub);
   } catch (err) {
