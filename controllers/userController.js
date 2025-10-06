@@ -65,7 +65,7 @@ exports.verifyOtp = async (req, res) => {
         
         email,
       role,
-        referCode: generateReferCode(name), // auto-generate
+        referCode: generateReferCode(email), // auto-generate
   referredBy: referredBy || null,
         // phone,
        
