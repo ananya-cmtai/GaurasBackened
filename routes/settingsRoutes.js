@@ -8,4 +8,5 @@ router.get('/', settingsController.getSettings);
 // POST create or update settings
 router.post('/', settingsController.createOrUpdateSettings);
 
+
 module.exports = router;
