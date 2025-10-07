@@ -1,16 +1,28 @@
-const Subscription = require('../models/Subscription');
-const User = require('../models/User');
-
+const { sendNotification } = require('../config/notificationUtils');  // adjust path accordingly
 const Notification = require('../models/Notification');
+const Subscription = require('../models/Subscription');
 
-
-exports.getUserNotifications = async (req, res) => {
-  const { userId } = req.params;
-
+// Example controller function to notify user about subscription expiry
+const notifyUserAboutExpiry = async (userId, expiryDate) => {
   try {
-    const notifications = await Notification.find({ user: userId }).sort({ createdAt: -1 });
-    res.json(notifications);
+    // Pehle notification DB me create karo
+    await Notification.create({
+      user: userId,
+      type: 'subscription_expiry',
+      message: `Your subscription will expire on ${expiryDate.toDateString()}. Please renew soon!`,
+    });
+
+    // Fir OneSignal se push notification bhejo
+    await sendNotification(
+      userId,
+      `Your subscription will expire on ${expiryDate.toDateString()}. Please renew soon!`,
+      'Subscription Expiry Reminder'
+    );
+
+    console.log('Notification sent to user:', userId);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to get notifications', error: error.message });
+    console.error('Error notifying user:', error);
   }
 };
+
+module.exports = { notifyUserAboutExpiry };

@@ -43,8 +43,8 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    // required: true,
-    unique: true,
+   unique: true,
+  sparse: true, 
   },
   address: {
     type: String,
@@ -58,7 +58,11 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Subscription',
   },
-  wallet: walletSchema, // Clean integration
+wallet: {
+  type: walletSchema,
+  default: () => ({ balance: 0, transactions: [] }),
+},
+
   role: {
     type: String,
     default: 'user', // or 'admin'
@@ -70,6 +74,10 @@ const userSchema = new mongoose.Schema({
   referCode: { type: String, unique: true, required: true },
 
   referredBy: { type: String, default: null },
+  oneSignalPlayerId: { 
+    type: String, 
+    required: true,  // Player ID for OneSignal push notifications
+  },
 });
 
 module.exports = mongoose.model('User', userSchema);

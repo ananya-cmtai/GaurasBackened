@@ -30,8 +30,8 @@ exports.sendOtp = async (req, res) => {
 };
 
 exports.verifyOtp = async (req, res) => {
-  const { email, otp ,role,referredBy} = req.body;
-  console.log(email,otp,role,referredBy)
+  const { email, otp ,role,referredBy,oneSignalPlayerId} = req.body;
+  console.log(email,otp,role,referredBy,oneSignalPlayerId)
   if (!email || !otp) return res.status(400).json({ message: 'Email and OTP required' });
 
   const record = otpStore[email];
@@ -68,6 +68,7 @@ exports.verifyOtp = async (req, res) => {
       role,
         referCode: generateReferCode(email), 
   referredBy: referredBy || null,
+  oneSignalPlayerId
         // phone,
        
       });
@@ -78,6 +79,7 @@ exports.verifyOtp = async (req, res) => {
       return res.status(201).json({ message: 'Registration successful', token, user: newUser });
     }
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: 'Error verifying OTP', error: error.message });
   }
 };
