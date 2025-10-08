@@ -1,45 +1,42 @@
-const axios = require('axios');
-const User = require('../models/User');  // Import User model
+const admin = require('firebase-admin');
+const User = require('../models/User'); // Import User model
 
-// OneSignal App ID and REST API Key — environment variables se lena zyada secure hota hai
-const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID || 'your-onesignal-app-id';
-const ONESIGNAL_API_KEY = process.env.ONESIGNAL_API_KEY || 'your-onesignal-api-key';
+// Initialize Firebase Admin SDK once
+if (!admin.apps.length) {
+  const serviceAccount = require('../firebase-service-account.json'); // tumhara Firebase service account JSON
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
 
-// Function to send notification
+/**
+ * Send notification to a user via FCM
+ * @param {string} userId - User ID from DB
+ * @param {string} type - Type of notification (for client-side handling)
+ * @param {string} message - Notification body
+ * @param {string} title - Notification title (default 'New Notification')
+ */
 const sendNotification = async (userId, type, message, title = 'New Notification') => {
   try {
-    // Find user by ID to get OneSignal Player ID
+    // Find user to get FCM token
     const user = await User.findById(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    if (!user.oneSignalPlayerId) {
-      throw new Error('OneSignal Player ID is missing for user');
-    }
+    if (!user) throw new Error('User not found');
+    if (!user.fcmToken) throw new Error('FCM token is missing for user');
 
     // Prepare notification payload
-    const notificationData = {
-      app_id: ONESIGNAL_APP_ID,
-      include_player_ids: [user.oneSignalPlayerId],
-      contents: { en: message },
-      headings: { en: title },
-      data: { type },  // shorthand for type: type
+    const payload = {
+      token: user.fcmToken,
+      notification: {
+        title,
+        body: message,
+      },
+      data: { type }, // extra data for client
     };
 
-    // Send POST request to OneSignal API
-    const response = await axios.post(
-      'https://onesignal.com/api/v1/notifications',
-      notificationData,
-      {
-        headers: {
-          Authorization: `Basic ${ONESIGNAL_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    console.log('Notification sent successfully:', response.data);
-    return response.data;
+    // Send via FCM
+    const response = await admin.messaging().send(payload);
+    console.log('Notification sent successfully:', response);
+    return response;
   } catch (error) {
     console.error('Failed to send notification:', error.message);
     throw error;

@@ -10,7 +10,7 @@ router.post('/send-otp', userController.sendOtp);
 
 // Login user
 router.post('/verify-otp', userController.verifyOtp);
-
+router.post('/save-fcm-token',userController.saveFCMtoken);
 // Get user wallet
 
 

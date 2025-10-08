@@ -126,3 +126,15 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({ message: 'Failed to get profile', error: error.message });
   }
 };
+ exports.saveFCMtoken=async(req, res)=>{
+   const { userId, fcmToken } = req.body;
+  if (!userId || !fcmToken) return res.status(400).json({ message: 'Missing userId or fcmToken' });
+
+  try {
+    await User.findByIdAndUpdate(userId, { fcmToken });
+    res.json({ message: 'FCM token saved successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+ }

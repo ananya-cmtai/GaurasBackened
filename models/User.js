@@ -74,9 +74,9 @@ wallet: {
   referCode: { type: String, unique: true, required: true },
 
   referredBy: { type: String, default: null },
-  oneSignalPlayerId: { 
-    type: String, 
-    required: true,  // Player ID for OneSignal push notifications
+  fcmToken: {
+    type: String,
+    default: null,
   },
 });
 
