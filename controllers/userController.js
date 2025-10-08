@@ -131,7 +131,13 @@ exports.getProfile = async (req, res) => {
   if (!userId || !fcmToken) return res.status(400).json({ message: 'Missing userId or fcmToken' });
 
   try {
-    await User.findByIdAndUpdate(userId, { fcmToken });
+    const updatedUser = await User.findByIdAndUpdate(
+  userId,
+  { fcmToken },
+  { new: true }
+);
+console.log('Updated user:', updatedUser);
+
     res.json({ message: 'FCM token saved successfully' });
   } catch (err) {
     console.error(err);
