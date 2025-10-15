@@ -5,29 +5,43 @@ const { sendOTPEmail } = require('../config/mail');
 const generateReferCode = require('../config/generateReferCode');
 const otpStore = {}; // { email: { otp, expiresAt, userId (optional) } }
 
+const axios = require('axios');
+
 exports.sendOtp = async (req, res) => {
   const { email } = req.body;
-  if (!email) return res.status(400).json({ message: 'Email is required' });
+  if (!email) return res.status(400).json({ message: 'Email or number is required' });
 
   try {
+    const isEmail = email.includes('@') && email.includes('.com');
+
     const user = await User.findOne({ email });
 
-    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
     otpStore[email] = {
       otp,
-      expiresAt: Date.now() + 10 * 60 * 1000, // 10 min
+      expiresAt: Date.now() + 10 * 60 * 1000,
       userId: user ? user._id.toString() : null,
     };
 
-    await sendOTPEmail(email, otp);
-    console.log(otp)
+    if (isEmail) {
+      await sendOTPEmail(email, otp);
+    } else {
+      const smsText = `Dear Customer, your OTP for login/signup is ${otp}. Please do not share it with anyone. - GAURAS ORGANIC DAIRY`;
 
-    res.status(200).json({ message: 'OTP sent to email' });
+      const smsUrl = `https://amazesms.in/api/pushsms?user=${process.env.AMAZE_USER_ID}&authkey=${process.env.AMAZE_SMS_KEY}&sender=${process.env.SENDER_ID}&mobile=${email}&text=${encodeURIComponent(smsText)}&entityid=${process.env.DLT_ENTITY_ID}&templateid=${process.env.DLT_TEMPLATE_ID}`;
+
+      await axios.get(smsUrl);
+    }
+
+    console.log('OTP:', otp);
+    res.status(200).json({ message: 'OTP sent successfully' });
   } catch (error) {
+    console.error('OTP Send Error:', error.message);
     res.status(500).json({ message: 'Failed to send OTP', error: error.message });
   }
 };
+
 
 exports.verifyOtp = async (req, res) => {
   const { email, otp ,role,referredBy,oneSignalPlayerId} = req.body;
@@ -55,13 +69,7 @@ exports.verifyOtp = async (req, res) => {
       delete otpStore[email];
       return res.status(200).json({ message: 'Login successful', token, user });
     } else {
-      // User does not exist, so register
-
-      // Password must be provided for registration
-
-
-    
-
+ 
       const newUser = await User.create({
         
         email,

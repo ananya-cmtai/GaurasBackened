@@ -13,7 +13,7 @@ exports.sendOTPEmail = async (toEmail, otp) => {
     from: process.env.EMAIL_USER,
     to: toEmail,
     subject: 'Your OTP Code',
-    text: `Your OTP code is: ${otp}. It is valid for 10 minutes.`,
+    text:  `Dear Customer, your OTP for login/signup is ${otp}. Please do not share it with anyone. - GAURAS ORGANIC DAIRY`,
   };
 
   await transporter.sendMail(mailOptions);
