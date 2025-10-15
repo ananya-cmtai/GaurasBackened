@@ -5,16 +5,21 @@ const { sendOTPEmail } = require('../config/mail');
 const generateReferCode = require('../config/generateReferCode');
 const otpStore = {}; // { email: { otp, expiresAt, userId (optional) } }
 
-const axios = require('axios');
+const axios = require('axios'); // Axios SMS API call ke liye
+
+
+
+const isEmailFormat = (value) => value.includes('@') && value.includes('.com');
 
 exports.sendOtp = async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ message: 'Email or number is required' });
+  const { email } = req.body; // This is either an email OR phone number
+  if (!email) return res.status(400).json({ message: 'Email or phone number is required' });
+
+  const isEmail = isEmailFormat(email);
+  const identifier = isEmail ? { email } : { phone: email };
 
   try {
-    const isEmail = email.includes('@') && email.includes('.com');
-
-    const user = await User.findOne({ email });
+    const user = await User.findOne(identifier);
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -34,7 +39,7 @@ exports.sendOtp = async (req, res) => {
       await axios.get(smsUrl);
     }
 
-    console.log('OTP:', otp);
+    console.log('OTP sent:', otp);
     res.status(200).json({ message: 'OTP sent successfully' });
   } catch (error) {
     console.error('OTP Send Error:', error.message);
@@ -44,12 +49,15 @@ exports.sendOtp = async (req, res) => {
 
 
 exports.verifyOtp = async (req, res) => {
-  const { email, otp ,role,referredBy,oneSignalPlayerId} = req.body;
-  console.log(email,otp,role,referredBy,oneSignalPlayerId)
-  if (!email || !otp) return res.status(400).json({ message: 'Email and OTP required' });
+  const { email, otp, role, referredBy, oneSignalPlayerId } = req.body;
+
+  if (!email || !otp) return res.status(400).json({ message: 'Email/phone and OTP required' });
+
+  const isEmail = isEmailFormat(email);
+  const identifier = isEmail ? { email } : { phone: email };
 
   const record = otpStore[email];
-  if (!record) return res.status(400).json({ message: 'OTP not requested for this email' });
+  if (!record) return res.status(400).json({ message: 'OTP not requested for this email/phone' });
 
   if (record.expiresAt < Date.now()) {
     delete otpStore[email];
@@ -60,25 +68,20 @@ exports.verifyOtp = async (req, res) => {
 
   try {
     if (record.userId) {
-      // User exists, so login
+      // Existing user: login
       const user = await User.findById(record.userId);
-
-      // Generate JWT token
       const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
       delete otpStore[email];
       return res.status(200).json({ message: 'Login successful', token, user });
     } else {
- 
+      // New user: register
       const newUser = await User.create({
-        
-        email,
-      role,
-        referCode: generateReferCode(email), 
-  referredBy: referredBy || null,
-  oneSignalPlayerId
-        // phone,
-       
+        ...(isEmail ? { email } : { phone: email }),
+        role,
+        referCode: generateReferCode(email),
+        referredBy: referredBy || null,
+        oneSignalPlayerId,
       });
 
       const token = jwt.sign({ _id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -87,10 +90,11 @@ exports.verifyOtp = async (req, res) => {
       return res.status(201).json({ message: 'Registration successful', token, user: newUser });
     }
   } catch (error) {
-    console.log(error)
+    console.error('Verify OTP Error:', error.message);
     res.status(500).json({ message: 'Error verifying OTP', error: error.message });
   }
 };
+
 exports.updateProfile = async (req, res) => {
   const userId = req.user._id; // Assuming you're using JWT middleware that sets req.user
   const { name, phone, address,email } = req.body;
