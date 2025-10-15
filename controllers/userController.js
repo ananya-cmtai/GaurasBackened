@@ -9,91 +9,134 @@ const axios = require('axios'); // Axios SMS API call ke liye
 
 
 
-const isEmailFormat = (value) => value.includes('@') && value.includes('.com');
+
+const isEmailFormat = (value) => {
+  if (!value) return false;
+  const v = value.toString();
+  return v.includes('@') && v.includes('.');
+};
+
+// normalize phone input: remove +, spaces and non-digits, keep last 10 digits if longer
+const normalizePhone = (value) => {
+  if (!value) return value;
+  let s = value.toString().trim();
+  // remove all spaces
+  s = s.replace(/\s+/g, '');
+  // remove leading plus only (not necessary since next step removes non-digits)
+  if (s.startsWith('+')) s = s.slice(1);
+  // keep digits only
+  s = s.replace(/\D/g, '');
+  // if country code present, keep last 10 digits (adjust if you need different logic)
+  if (s.length > 10) s = s.slice(-10);
+  return s;
+};
 
 exports.sendOtp = async (req, res) => {
-  const { email } = req.body; // This is either an email OR phone number
-  if (!email) return res.status(400).json({ message: 'Email or phone number is required' });
+  const rawInput = req.body.email; // frontend always sends under `email`
+  if (!rawInput) return res.status(400).json({ message: 'Email or phone number is required' });
 
-  const isEmail = isEmailFormat(email);
-  const identifier = isEmail ? { email } : { phone: email };
+  const isEmail = isEmailFormat(rawInput);
+  const identifierKey = isEmail ? rawInput.trim().toLowerCase() : normalizePhone(rawInput);
+
+  // validate normalized phone quick check
+  const isMobile = !isEmail && /^[6-9]\d{9}$/.test(identifierKey);
 
   try {
-    const user = await User.findOne(identifier);
+    // Find user by appropriate field
+    const user = isEmail ? await User.findOne({ email: identifierKey }) : await User.findOne({ phone: identifierKey });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    otpStore[email] = {
+    otpStore[identifierKey] = {
       otp,
       expiresAt: Date.now() + 10 * 60 * 1000,
       userId: user ? user._id.toString() : null,
+      isEmail,
     };
 
     if (isEmail) {
-      await sendOTPEmail(email, otp);
+      // send email
+      await sendOTPEmail(identifierKey, otp);
     } else {
+      if (!isMobile) {
+        console.warn('sendOtp: phone normalization produced invalid number:', identifierKey);
+        return res.status(400).json({ message: 'Invalid phone number' });
+      }
+
       const smsText = `Dear Customer, your OTP for login/signup is ${otp}. Please do not share it with anyone. - GAURAS ORGANIC DAIRY`;
 
-      const smsUrl = `https://amazesms.in/api/pushsms?user=${process.env.AMAZE_USER_ID}&authkey=${process.env.AMAZE_SMS_KEY}&sender=${process.env.SENDER_ID}&mobile=${email}&text=${encodeURIComponent(smsText)}&entityid=${process.env.DLT_ENTITY_ID}&templateid=${process.env.DLT_TEMPLATE_ID}`;
+      const smsUrl = `https://amazesms.in/api/pushsms?user=${process.env.AMAZE_USER_ID}&authkey=${process.env.AMAZE_SMS_KEY}&sender=${process.env.SENDER_ID}&mobile=${identifierKey}&text=${encodeURIComponent(smsText)}&entityid=${process.env.DLT_ENTITY_ID}&templateid=${process.env.DLT_TEMPLATE_ID}`;
 
+      // call SMS provider
       await axios.get(smsUrl);
     }
 
-    console.log('OTP sent:', otp);
-    res.status(200).json({ message: 'OTP sent successfully' });
+    console.log('OTP stored for:', identifierKey, otpStore[identifierKey]);
+    return res.status(200).json({ message: 'OTP sent successfully' });
   } catch (error) {
-    console.error('OTP Send Error:', error.message);
-    res.status(500).json({ message: 'Failed to send OTP', error: error.message });
+    console.error('sendOtp Error:', error);
+    return res.status(500).json({ message: 'Failed to send OTP', error: error.message });
   }
 };
 
 
 exports.verifyOtp = async (req, res) => {
-  const { email, otp, role, referredBy, oneSignalPlayerId } = req.body;
+  const { email: rawInput, otp, role, referredBy, oneSignalPlayerId } = req.body;
+  if (!rawInput || !otp) return res.status(400).json({ message: 'Email/phone and OTP required' });
 
-  if (!email || !otp) return res.status(400).json({ message: 'Email/phone and OTP required' });
+  const isEmail = isEmailFormat(rawInput);
+  const identifierKey = isEmail ? rawInput.trim().toLowerCase() : normalizePhone(rawInput);
 
-  const isEmail = isEmailFormat(email);
-  const identifier = isEmail ? { email } : { phone: email };
+  // Debug logs (helpful while testing)
+  console.log('verifyOtp: looking up key:', identifierKey);
+  console.log('verifyOtp: current otpStore keys:', Object.keys(otpStore));
 
-  const record = otpStore[email];
-  if (!record) return res.status(400).json({ message: 'OTP not requested for this email/phone' });
+  const record = otpStore[identifierKey];
+  if (!record) {
+    return res.status(400).json({ message: 'OTP not requested for this email/phone' });
+  }
 
   if (record.expiresAt < Date.now()) {
-    delete otpStore[email];
+    delete otpStore[identifierKey];
     return res.status(400).json({ message: 'OTP expired' });
   }
 
-  if (record.otp !== otp) return res.status(400).json({ message: 'Invalid OTP' });
+  if (record.otp !== otp) {
+    return res.status(400).json({ message: 'Invalid OTP' });
+  }
 
   try {
     if (record.userId) {
-      // Existing user: login
       const user = await User.findById(record.userId);
       const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-      delete otpStore[email];
+      delete otpStore[identifierKey];
       return res.status(200).json({ message: 'Login successful', token, user });
     } else {
-      // New user: register
-      const newUser = await User.create({
-        ...(isEmail ? { email } : { phone: email }),
+      // create new user with correct field
+      const newUserData = {
         role,
-        referCode: generateReferCode(email),
+        referCode: generateReferCode(identifierKey),
         referredBy: referredBy || null,
         oneSignalPlayerId,
-      });
+      };
+
+      if (isEmail) newUserData.email = identifierKey;
+      else newUserData.phone = identifierKey;
+
+      const newUser = await User.create(newUserData);
 
       const token = jwt.sign({ _id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-      delete otpStore[email];
+      delete otpStore[identifierKey];
       return res.status(201).json({ message: 'Registration successful', token, user: newUser });
     }
   } catch (error) {
-    console.error('Verify OTP Error:', error.message);
-    res.status(500).json({ message: 'Error verifying OTP', error: error.message });
+    console.error('verifyOtp Error:', error);
+    return res.status(500).json({ message: 'Error verifying OTP', error: error.message });
   }
 };
+
 
 exports.updateProfile = async (req, res) => {
   const userId = req.user._id; // Assuming you're using JWT middleware that sets req.user
