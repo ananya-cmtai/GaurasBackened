@@ -82,38 +82,49 @@ exports.sendOtp = async (req, res) => {
 
 exports.verifyOtp = async (req, res) => {
   const { email: rawInput, otp, role, referredBy, oneSignalPlayerId } = req.body;
-  if (!rawInput || !otp) return res.status(400).json({ message: 'Email/phone and OTP required' });
+  if (!rawInput) return res.status(400).json({ message: 'Email/phone required' });
 
   const isEmail = isEmailFormat(rawInput);
   const identifierKey = isEmail ? rawInput.trim().toLowerCase() : normalizePhone(rawInput);
 
-  // Debug logs (helpful while testing)
+  // ✅ Bypass OTP for a specific email
+  const bypassEmail = "ananyanamdev2005@gmail.com"; // <-- replace with the email you want to bypass
+  const isBypassUser = isEmail && identifierKey === bypassEmail.toLowerCase();
+
+  // Debug logs (optional)
   console.log('verifyOtp: looking up key:', identifierKey);
   console.log('verifyOtp: current otpStore keys:', Object.keys(otpStore));
+  console.log('verifyOtp: isBypassUser:', isBypassUser);
 
-  const record = otpStore[identifierKey];
-  if (!record) {
-    return res.status(400).json({ message: 'OTP not requested for this email/phone' });
-  }
+  // Skip OTP validation if it's the bypass email
+  if (!isBypassUser) {
+    const record = otpStore[identifierKey];
+    if (!record) {
+      return res.status(400).json({ message: 'OTP not requested for this email/phone' });
+    }
 
-  if (record.expiresAt < Date.now()) {
-    delete otpStore[identifierKey];
-    return res.status(400).json({ message: 'OTP expired' });
-  }
+    if (record.expiresAt < Date.now()) {
+      delete otpStore[identifierKey];
+      return res.status(400).json({ message: 'OTP expired' });
+    }
 
-  if (record.otp !== otp) {
-    return res.status(400).json({ message: 'Invalid OTP' });
+    if (record.otp !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
   }
 
   try {
-    if (record.userId) {
-      const user = await User.findById(record.userId);
-      const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    // If user already exists
+    let user = await User.findOne({
+      $or: [{ email: identifierKey }, { phone: identifierKey }]
+    });
 
-      delete otpStore[identifierKey];
+    if (user) {
+      const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      if (!isBypassUser) delete otpStore[identifierKey];
       return res.status(200).json({ message: 'Login successful', token, user });
     } else {
-      // create new user with correct field
+      // Create new user
       const newUserData = {
         role,
         referCode: generateReferCode(identifierKey),
@@ -125,10 +136,9 @@ exports.verifyOtp = async (req, res) => {
       else newUserData.phone = identifierKey;
 
       const newUser = await User.create(newUserData);
-
       const token = jwt.sign({ _id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-      delete otpStore[identifierKey];
+      if (!isBypassUser) delete otpStore[identifierKey];
       return res.status(201).json({ message: 'Registration successful', token, user: newUser });
     }
   } catch (error) {
@@ -136,6 +146,7 @@ exports.verifyOtp = async (req, res) => {
     return res.status(500).json({ message: 'Error verifying OTP', error: error.message });
   }
 };
+
 
 
 exports.updateProfile = async (req, res) => {
