@@ -16,20 +16,20 @@ const isEmailFormat = (value) => {
   return v.includes('@') && v.includes('.');
 };
 
-// normalize phone input: remove +, spaces and non-digits, keep last 10 digits if longer
-const normalizePhone = (value) => {
-  if (!value) return value;
-  let s = value.toString().trim();
-  // remove all spaces
-  s = s.replace(/\s+/g, '');
-  // remove leading plus only (not necessary since next step removes non-digits)
-  if (s.startsWith('+')) s = s.slice(1);
-  // keep digits only
-  s = s.replace(/\D/g, '');
-  // if country code present, keep last 10 digits (adjust if you need different logic)
-  if (s.length > 10) s = s.slice(-10);
-  return s;
-};
+function normalizePhone(phone) {
+  if (!phone) return '';
+  let digits = phone.replace(/\D/g, ''); // remove all non-digits
+
+  // if number starts with 0 or +91, remove it
+  if (digits.length === 12 && digits.startsWith('91')) {
+    digits = digits.slice(2);
+  } else if (digits.length === 11 && digits.startsWith('0')) {
+    digits = digits.slice(1);
+  }
+
+  return digits; // always return plain 10-digit mobile number
+}
+
 
 exports.sendOtp = async (req, res) => {
   const rawInput = req.body.email; // frontend always sends under `email`
