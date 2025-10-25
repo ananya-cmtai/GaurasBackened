@@ -18,7 +18,7 @@ const isEmailFormat = (value) => {
 
 function normalizePhone(phone) {
   if (!phone) return '';
-  let digits = phone.replace(/\D/g, ''); // remove all non-digits
+  let digits = phone.replace(/\D/g, ''); // remove all non-digit
 
   // if number starts with 0 or +91, remove it
   if (digits.length === 12 && digits.startsWith('91')) {
