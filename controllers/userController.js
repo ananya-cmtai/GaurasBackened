@@ -18,17 +18,23 @@ const isEmailFormat = (value) => {
 
 function normalizePhone(phone) {
   if (!phone) return '';
-  let digits = phone.replace(/\D/g, ''); // remove all non-digit
+  let digits = phone.replace(/\D/g, ''); // remove everything except digits
 
-  // if number starts with 0 or +91, remove it
-  if (digits.length === 12 && digits.startsWith('91')) {
+  // Remove leading 0 or +91 or 91
+  if (digits.startsWith('91') && digits.length === 12) {
     digits = digits.slice(2);
-  } else if (digits.length === 11 && digits.startsWith('0')) {
+  } else if (digits.startsWith('0') && digits.length === 11) {
     digits = digits.slice(1);
   }
 
-  return digits; // always return plain 10-digit mobile number
+  // Always ensure it's exactly 10 digits
+  if (digits.length !== 10) {
+    console.warn('⚠️ Invalid phone format:', phone, '→ normalized to:', digits);
+  }
+
+  return digits;
 }
+
 
 
 exports.sendOtp = async (req, res) => {
