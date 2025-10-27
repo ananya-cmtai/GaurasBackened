@@ -39,7 +39,7 @@ const productSchema = new mongoose.Schema({
     default: '', 
   },
   quantity:{
-    type: String,
+    type: [String],
     
   },
   createdAt: {
