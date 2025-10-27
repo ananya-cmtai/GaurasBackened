@@ -12,7 +12,6 @@ exports.getAllProducts = async (req, res) => {
 exports.addProduct = async (req, res) => {
   const { name, category, price, stock, quantity, description,   alternatePrice,dailyPrice,weeklyPrice, } = req.body;
   // description expected to be an array of strings
-  // if it comes as string (single point), convert to array
   let descArray = [];
   if (description) {
     if (Array.isArray(description)) {
