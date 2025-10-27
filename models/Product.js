@@ -12,19 +12,19 @@ const productSchema = new mongoose.Schema({
     required: true,
   },
   dailyPrice:{
-     type:Number,
+     type:[Number],
     
   },
   alternatePrice:{
- type:Number,
+ type:[Number],
     
   },
   weeklyPrice:{
- type:Number,
-   
+ type:[Number],
+
   },
   price: {
-    type: Number,
+    type: [Number],
     required: true,
   },
   description:{
