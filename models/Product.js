@@ -49,16 +49,17 @@ const productSchema = new mongoose.Schema({
 });
 productSchema.pre('save', function (next) {
   if (this.isNew || this.isModified('price')) {
-    if (this.dailyPrice === undefined) {
-      this.dailyPrice = this.price * 30;
+    if (!this.dailyPrice || this.dailyPrice.length === 0) {
+      this.dailyPrice = this.price.map(p => p * 30);
     }
-    if (this.alternatePrice === undefined) {
-      this.alternatePrice = this.price * 15;
+    if (!this.alternatePrice || this.alternatePrice.length === 0) {
+      this.alternatePrice = this.price.map(p => p * 15);
     }
-    if (this.weeklyPrice === undefined) {
-      this.weeklyPrice = this.price * 4;
+    if (!this.weeklyPrice || this.weeklyPrice.length === 0) {
+      this.weeklyPrice = this.price.map(p => p * 4);
     }
   }
   next();
 });
+
 module.exports = mongoose.model('Product', productSchema);
