@@ -8,10 +8,10 @@ const favouriteItemSchema = new mongoose.Schema({
     required: true,
   },
   name: String,
-  price: Number,
+  price: [Number],
   imageUrl: String,
 
-  quantity: String,
+  quantity: [String],
 
 });
 
