@@ -38,6 +38,7 @@ const settingsSchema = new mongoose.Schema({
     default: 0,
   },
   coupons: [couponSchema], // coupons ka array
+  loginImageUrls: [{ type: String, required: true }],
 });
 
 const Settings = mongoose.model('Settings', settingsSchema);
