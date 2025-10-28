@@ -17,7 +17,7 @@ exports.createSubscription = async (req, res) => {
  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ message: "Missing required Razorpay details." });
     }
-    const generated_signature = crypto.createHmac('sha256', "2kA1raBV7KriMGR8EHoQAXY0")
+    const generated_signature = crypto.createHmac('sha256', "Dij7h2E6xKQkWh2PjKsXjYLo")
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest('hex');
 

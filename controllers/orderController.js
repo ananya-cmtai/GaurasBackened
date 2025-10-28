@@ -39,7 +39,7 @@ exports.placeOrder = async (req, res) => {
  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ message: "Missing required Razorpay details." });
     }
-    const generated_signature = crypto.createHmac('sha256', "2kA1raBV7KriMGR8EHoQAXY0")
+    const generated_signature = crypto.createHmac('sha256', "Dij7h2E6xKQkWh2PjKsXjYLo")
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest('hex');
 
@@ -87,8 +87,8 @@ exports.getOrdersByUser = async (req, res) => {
 
 
 const razorpayInstance = new Razorpay({
-  key_id: "rzp_test_h7fC45pYvbeKRH",
-  key_secret: "2kA1raBV7KriMGR8EHoQAXY0",
+  key_id: "rzp_live_RYNXhDJcEf2dUe",
+  key_secret: "Dij7h2E6xKQkWh2PjKsXjYLo",
 });
 
 // Refund function with better error handling
@@ -137,7 +137,7 @@ exports.updateOrderStatus = async (req, res) => {
 const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = order.paymentDetails;
 
     // Generate the signature on the server side using the order_id and payment_id
-    const generated_signature = crypto.createHmac('sha256', "2kA1raBV7KriMGR8EHoQAXY0")
+    const generated_signature = crypto.createHmac('sha256', "Dij7h2E6xKQkWh2PjKsXjYLo")
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest('hex');
 
