@@ -106,191 +106,151 @@ const refundPayment = async (paymentId, amount) => {
   }
 };
 
+
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
 
-    // वैलिड स्टेटस चेक करें
+    // Valid statuses
     const validStatuses = ['Pending', 'Delivered', 'Cancelled', 'Accepted'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid status value' });
     }
 
-    // ऑर्डर अपडेट करें
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      { status },
-      { new: true }
-    );
-
-    if (!updatedOrder) {
+    // Fetch order
+    const order = await Order.findById(orderId);
+    if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
-    const order = await Order.findById(orderId); 
-    const userId=order.user;
-      const user = await User.findById(userId); 
-         if (!user) {
-      throw new Error('User not found');
+
+    // Fetch user
+    const user = await User.findById(order.user);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
-    if(order.paymentMode==="Razorpay"){
-const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = order.paymentDetails;
 
-    // Generate the signature on the server side using the order_id and payment_id
-    const generated_signature = crypto.createHmac('sha256', "Dij7h2E6xKQkWh2PjKsXjYLo")
-      .update(razorpay_order_id + "|" + razorpay_payment_id)
-      .digest('hex');
+    // Razorpay signature verification
+    if (order.paymentMode === "Razorpay" && order.paymentVerified) {
+      const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = order.paymentDetails;
 
-    console.log("Generated Signature:", generated_signature);
-    console.log("Razorpay Signature:", razorpay_signature);
+      if (razorpay_signature) {
+        const generated_signature = crypto.createHmac('sha256', process.env.RAZORPAY_SECRET)
+          .update(razorpay_order_id + "|" + razorpay_payment_id)
+          .digest('hex');
 
-    // Check if the generated signature matches the one sent by Razorpay
-    if (generated_signature !== razorpay_signature) {
-      return res.status(400).json({ message: 'Payment verification failed. Signature mismatch.' });
+        if (generated_signature !== razorpay_signature) {
+          return res.status(400).json({ message: 'Payment verification failed. Signature mismatch.' });
+        }
+      }
     }
-  }
-    // Handle refund when order is canceled
-    if (status === 'Cancelled' && order.paymentVerified && !order.paymentRefunded && paymentMode==="Razorpay") {
+
+    // Handle refund for Razorpay
+    if (status === 'Cancelled' && order.paymentVerified && !order.paymentRefunded && order.paymentMode === "Razorpay") {
       try {
-        // Set refund status to "Processing"
         order.refundStatus = 'Processing';
         order.refundMessage = 'Refund is being processed...';
-
-        // Save the order before refund to show current processing state
         await order.save();
 
-        // Debug: Log the total amount to be refunded
-        console.log('Total to refund (in paise):', order.total * 100);
+        const refundResponse = await refundPayment(order.paymentDetails.razorpay_payment_id, order.total * 100);
 
-        // Call Razorpay API to refund the payment (amount should be in paise)
-        const refundResponse = await refundPayment(order.paymentDetails.razorpay_payment_id, order.total * 100); // Total in paise
-
-        // If refund is successful, update order details
         order.paymentRefunded = true;
-        order.refundStatus = 'Refunded';  // Mark as refunded
-        order.refundMessage = 'Refund successful';  // Success message
-
-        // Save the updated order after refund
+        order.refundStatus = 'Refunded';
+        order.refundMessage = 'Refund successful';
         await order.save();
+        console.log('Razorpay refund successful for Order ID:', order._id);
 
-        console.log('Refund successful for Order ID:', order._id);
       } catch (refundError) {
         console.error('Refund failed for Order:', order._id, refundError);
-
-        // Handle refund failure
         order.refundStatus = 'Failed';
         order.refundMessage = `Refund failed. Reason: ${refundError.message}`;
-
-        // Save the order with failure status
         await order.save();
-
-        // Send a detailed response to the user with error information
         return res.status(500).json({
           message: "Refund failed. Order status not updated.",
-          error: refundError.message,  // Detailed error message for debugging
+          error: refundError.message,
           orderId: order._id,
         });
       }
     }
 
-
-
-      if (status === 'Cancelled' && order.paymentVerified && !order.paymentRefunded && paymentMode==="Wallet") {
+    // Handle refund for Wallet
+    if (status === 'Cancelled' && order.paymentVerified && !order.paymentRefunded && order.paymentMode === "Wallet") {
       try {
-        // Set refund status to "Processing"
         order.refundStatus = 'Processing';
         order.refundMessage = 'Refund is being processed...';
-
-        // Save the order before refund to show current processing state
         await order.save();
 
-  
-const refundAmount = order.total; 
+        const refundAmount = order.total;
+        user.wallet.balance += refundAmount;
+        user.wallet.transactions.push({
+          type: 'Credit',
+          amount: refundAmount,
+          description: 'Refund for cancelled order',
+          source: 'Order Refund',
+          orderId: order._id,
+          paymentMode: 'Wallet',
+          paymentVerified: true,
+        });
+        await user.save();
 
-user.wallet.balance += refundAmount;
-
-user.wallet.transactions.push({
-  type: 'Credit',
-  amount: refundAmount,
-  description: 'Refund for cancelled order',
-  source: 'Order Refund',
-  orderId: order._id,
-  paymentMode: 'Wallet',
-  paymentVerified: true,
-});
-
-await user.save();
-
-     
         order.paymentRefunded = true;
-        order.refundStatus = 'Refunded';  // Mark as refunded
-        order.refundMessage = 'Refund successful';  // Success message
-
-        // Save the updated order after refund
+        order.refundStatus = 'Refunded';
+        order.refundMessage = 'Refund successful';
         await order.save();
+        console.log('Wallet refund successful for Order ID:', order._id);
 
-        console.log('Refund successful for Order ID:', order._id);
       } catch (refundError) {
         console.error('Refund failed for Order:', order._id, refundError);
-
-        // Handle refund failure
         order.refundStatus = 'Failed';
         order.refundMessage = `Refund failed. Reason: ${refundError.message}`;
-
-        // Save the order with failure status
         await order.save();
-
-        // Send a detailed response to the user with error information
         return res.status(500).json({
           message: "Refund failed. Order status not updated.",
-          error: refundError.message,  // Detailed error message for debugging
+          error: refundError.message,
           orderId: order._id,
         });
       }
     }
-  order.status = status;
-// Check for referral cashback on first successful delivery
-// ✅ Referral bonus logic
-if (status === 'Delivered') {
-  const deliveredOrders = await Order.find({
-    user: userId,
-    status: 'Delivered',
-  });
 
-  if (deliveredOrders.length === 1 && user.referredBy) {
-    const referrer = await User.findOne({ referCode: user.referredBy });
+    // Update order status
+    order.status = status;
 
-    if (referrer) {
-      referrer.wallet.balance += 100;
-
-      referrer.wallet.transactions.push({
-        type: 'Credit',
-        amount: 100,
-        description: `Referral reward for ${user.email}`,
-        source: 'Referral Program',
-        paymentMode: 'Wallet',
-        paymentVerified: true,
-        orderId: order._id,
-      });
-
-      await referrer.save();
-      console.log(`₹100 referral credited to ${referrer.email}`);
+    // Referral bonus logic
+    if (status === 'Delivered') {
+      const deliveredOrders = await Order.find({ user: user._id, status: 'Delivered' });
+      if (deliveredOrders.length === 1 && user.referredBy) {
+        const referrer = await User.findOne({ referCode: user.referredBy });
+        if (referrer) {
+          referrer.wallet.balance += 100;
+          referrer.wallet.transactions.push({
+            type: 'Credit',
+            amount: 100,
+            description: `Referral reward for ${user.email}`,
+            source: 'Referral Program',
+            paymentMode: 'Wallet',
+            paymentVerified: true,
+            orderId: order._id,
+          });
+          await referrer.save();
+          console.log(`₹100 referral credited to ${referrer.email}`);
+        }
+      }
     }
-  }
-}
 
-
-    // Save the updated order
+    // Save final order
     await order.save();
+
     res.status(200).json({
       message: 'Order status updated successfully',
-      order: updatedOrder,
+      order, // Return the fully updated order
     });
+
   } catch (error) {
     console.error('Error updating order status:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
+
 
 exports.assignDeliveryBoyToOrder = async (req, res) => {
   const { orderId, deliveryBoyId } = req.body;
