@@ -5,6 +5,7 @@ const walletController = require('../controllers/walletController');
 const { protect } = require('../middleware/auth');
 // Register user
 router.get('/profile', protect, userController.getProfile);  
+router.get('/', protect, userController.getAllUser);  
 router.get('/:userId/wallet',protect, walletController.getWallet);
 router.post('/send-otp', userController.sendOtp);
 

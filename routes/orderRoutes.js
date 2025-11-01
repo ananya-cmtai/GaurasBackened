@@ -6,6 +6,7 @@ const { protect } = require('../middleware/auth');
 router.get('/by-delivery-boy', protect,orderController.getOrdersByDeliveryBoy);
 router.get('/orderById/:orderId',protect, orderController.getOrderById);
 router.get('/user/:userId',protect, orderController.getOrdersByUser);
+router.get('/',protect, orderController.getOrdersAllUser);
 router.post('/',protect, orderController.placeOrder);
 router.post('/assign-delivery-boy', orderController.assignDeliveryBoyToOrder);
 // Get orders by user

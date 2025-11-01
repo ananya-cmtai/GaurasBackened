@@ -338,3 +338,28 @@ exports.getSubscriptionById = async (req, res) => {
   }
 };
 
+exports.getAllSubscriptions = async (req, res) => {
+  try {
+ 
+
+    const subscriptions = await Subscription.find();
+ const sortedsubscriptions = subscriptions.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+    const today = new Date();
+
+    const updatedSubscriptions = await Promise.all(
+      sortedsubscriptions.map(async (sub) => {
+        if (sub.status === 'Active' && sub.renewalDate < today) {
+          sub.status = 'Expired';
+          await sub.save(); // Update in DB
+        }
+        return sub;
+      })
+    );
+
+    res.json({ subscriptions: updatedSubscriptions });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch subscriptions', error: error.message });
+  }
+};

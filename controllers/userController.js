@@ -216,3 +216,18 @@ console.log('Updated user:', updatedUser);
     res.status(500).json({ message: 'Server error' });
   }
  }
+
+ exports.getAllUser = async (req, res) => {
+ 
+ 
+   try {
+     const users = await User.find();
+     const sortedUsers = users.sort(
+       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+     );
+     res.status(200).json(sortedUsers);
+   } catch (err) {
+     res.status(500).json({ message: 'Could not fetch users', error: err.message });
+   }
+ };
+ 

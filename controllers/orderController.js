@@ -363,3 +363,17 @@ exports.getOrderById = async (req, res) => {
     res.status(500).json({ message: 'Failed to get order', error: error.message });
   }
 };
+
+exports.getOrdersAllUser = async (req, res) => {
+
+
+  try {
+    const orders = await Order.find().populate('products.productId');
+ const sortedTOrders = orders.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+    res.status(200).json(sortedTOrders);
+  } catch (err) {
+    res.status(500).json({ message: 'Could not fetch orders', error: err.message });
+  }
+};
