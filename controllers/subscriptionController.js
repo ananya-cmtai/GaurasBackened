@@ -354,3 +354,39 @@ exports.getAllSubscriptions = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch subscriptions', error: error.message });
   }
 };
+
+// controllers/subscriptionController.js
+
+
+exports.assignDeliveryBoy = async (req, res) => {
+  try {
+    const { subscriptionId, deliveryBoyId } = req.body;
+
+    // Check if subscription exists
+    const subscription = await Subscription.findById(subscriptionId);
+    if (!subscription) {
+      return res.status(404).json({ message: 'Subscription not found' });
+    }
+
+    // Check if delivery boy exists
+    const deliveryBoy = await User.findById(deliveryBoyId);
+    if (!deliveryBoy) {
+      return res.status(404).json({ message: 'Delivery boy not found' });
+    }
+
+    // Assign delivery boy
+    subscription.deliveryBoy = deliveryBoy._id;
+    await subscription.save();
+
+    // Optionally, populate deliveryBoy info
+    const updatedSubscription = await Subscription.findById(subscriptionId).populate('deliveryBoy', 'name email');
+
+    res.status(200).json({
+      message: 'Delivery boy assigned successfully',
+      subscription: updatedSubscription
+    });
+  } catch (err) {
+    console.error('Error assigning delivery boy:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
