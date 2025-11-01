@@ -10,9 +10,6 @@ router.get('/getById/:id', protect, subscriptionController.getSubscriptionById);
 router.get('/all', protect, subscriptionController.getAllSubscriptions);
 // Create a new subscription
 router.post('/', protect, subscriptionController.createSubscription);
-
-// Get all subscriptions for logged-in user
-
 // Skip today's delivery (adds today to skippedDates)
 router.post('/:subscriptionId/skip', protect, subscriptionController.skipToday);
 

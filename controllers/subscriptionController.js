@@ -348,17 +348,8 @@ exports.getAllSubscriptions = async (req, res) => {
     );
     const today = new Date();
 
-    const updatedSubscriptions = await Promise.all(
-      sortedsubscriptions.map(async (sub) => {
-        if (sub.status === 'Active' && sub.renewalDate < today) {
-          sub.status = 'Expired';
-          await sub.save(); // Update in DB
-        }
-        return sub;
-      })
-    );
 
-    res.json({ subscriptions: updatedSubscriptions });
+    res.json({ subscriptions: sortedsubscriptions });
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch subscriptions', error: error.message });
   }
