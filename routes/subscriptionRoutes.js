@@ -17,5 +17,5 @@ router.post('/:subscriptionId/skip', protect, subscriptionController.skipToday);
 router.post('/:subscriptionId/skip-dates', protect, subscriptionController.setSkippedDates);
 
 router.get('/subscription-today', protect, subscriptionController.getTodaySubscriptions);
-router.put('/assign-delivery-boy', protect, subscriptionController.assignDeliveryBoy);
+router.put('/assign-delivery-boy/:subscriptionId', protect, subscriptionController.assignDeliveryBoy);
 module.exports = router;

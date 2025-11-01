@@ -360,8 +360,8 @@ exports.getAllSubscriptions = async (req, res) => {
 
 exports.assignDeliveryBoy = async (req, res) => {
   try {
-    const { subscriptionId, deliveryBoyId } = req.body;
-
+    const { deliveryBoyId } = req.body;
+    const { subscriptionId } = req.params;
     // Check if subscription exists
     const subscription = await Subscription.findById(subscriptionId);
     if (!subscription) {
